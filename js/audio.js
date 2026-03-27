@@ -235,6 +235,28 @@ export function sfxCombo() {
 }
 
 // ========================================
+// OKTOBERFEST - Bavarian beer hall
+// Cheerful, oom-pah, festive
+// ========================================
+
+// Sway hit - cheerful oom-pah accent
+export function sfxSchunkel() {
+    playTone(392, 0.08, 'square', 0.08);
+    playTone(494, 0.06, 'sine', 0.06, 0.05);
+}
+
+// Grand cheers - glass clink + celebration chord
+export function sfxProst() {
+    playTone(2200, 0.04, 'sine', 0.06);
+    playTone(3200, 0.03, 'sine', 0.04, 0.03);
+    playTone(2800, 0.04, 'sine', 0.03, 0.06);
+    playTone(523, 0.3, 'sine', 0.06, 0.1);
+    playTone(659, 0.3, 'sine', 0.06, 0.1);
+    playTone(784, 0.3, 'sine', 0.06, 0.1);
+    playTone(1047, 0.4, 'sine', 0.08, 0.25);
+}
+
+// ========================================
 // LEVEL 5: WEDDING DAY - Ceremonial
 // Grand, elegant, bells, celebration
 // ========================================
@@ -327,6 +349,17 @@ const MELODIES = {
         ],
         type: 'sine',
         volume: 0.035,
+    },
+    // Oktoberfest: Bavarian oom-pah polka
+    oktoberfest: {
+        notes: [
+            [392, 0.2], [392, 0.2], [330, 0.2], [392, 0.4],
+            [440, 0.2], [440, 0.2], [392, 0.2], [440, 0.4],
+            [494, 0.2], [440, 0.2], [392, 0.2], [330, 0.2],
+            [294, 0.2], [330, 0.2], [392, 0.4], [0, 0.3],
+        ],
+        type: 'square',
+        volume: 0.028,
     },
     // L5: Grand wedding march
     wedding: {

@@ -7,6 +7,7 @@ import { Level2 } from './levels/level2.js';
 import { Level3 } from './levels/level3.js';
 import { Level4 } from './levels/level4.js';
 import { Level5 } from './levels/level5.js';
+import { LevelOktoberfest } from './levels/oktoberfest.js';
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -55,6 +56,9 @@ const FLOW = [
     { type: 'story', key: 'level4_intro' },
     { type: 'level', create: () => new Level4(), music: 'date' },
     { type: 'story', key: 'level4_outro' },
+    { type: 'story', key: 'oktoberfest_intro' },
+    { type: 'level', create: () => new LevelOktoberfest(), music: 'oktoberfest' },
+    { type: 'story', key: 'oktoberfest_outro' },
     { type: 'story', key: 'level5_intro' },
     { type: 'level', create: () => new Level5(), music: 'wedding' },
     { type: 'story', key: 'finale' },
@@ -231,6 +235,7 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// Start
+// Start — skip to Oktoberfest for testing (flowIndex 13 = oktoberfest_intro)
+flowIndex = 13;
 advanceFlow();
 requestAnimationFrame(gameLoop);

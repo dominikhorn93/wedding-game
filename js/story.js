@@ -131,8 +131,42 @@ export const STORIES = {
         ],
     },
 
+    oktoberfest_intro: {
+        title: "Chapter 5: Oktoberfest!",
+        subtitle: "Fall 2025 - Munich, Germany",
+        lines: [
+            "Hannah & Justin's adventure",
+            "took them across the ocean",
+            "to Germany!",
+            "",
+            "And what's a trip to Munich",
+            "without Oktoberfest?",
+            "",
+            "Dominik & Camilla",
+            "joined them at Oktoberfest.",
+            "",
+            "Sway to the music!",
+            "LEFT/RIGHT arrows or tap!",
+        ],
+    },
+
+    oktoberfest_outro: {
+        lines: [
+            "PROST!",
+            "",
+            "Was fuer eine Gaudi!",
+            "",
+            "With Dominik & Camilla by",
+            "their side, the beer tent",
+            "felt like home.",
+            "",
+            "Friendships that span oceans",
+            "are the best kind.",
+        ],
+    },
+
     level5_intro: {
-        title: "Chapter 5: The Wedding Day",
+        title: "Chapter 6: The Wedding Day",
         subtitle: "March 28, 2026 - Pen Ryn Estate",
         lines: [
             "From a chance meeting",
