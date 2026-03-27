@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawJustin, drawHeart, drawConfetti, drawRing } from '../sprites.js';
+import { sfxCollect, sfxHit, sfxWedding } from '../audio.js';
 
 // Level 5: Wedding Day - Guide the couple down the aisle
 export class Level5 {
@@ -146,6 +147,7 @@ export class Level5 {
                 )) {
                     f.collected = true;
                     this.score++;
+                    sfxCollect();
                     spawnParticles(this.particles, f.x + 3, fy + 3, 5,
                         [f.color, COLORS.white]);
                 }
@@ -163,6 +165,7 @@ export class Level5 {
                     { x: ox, y: oy, w: o.w, h: o.h }
                 )) {
                     // Push player slightly
+                    sfxHit();
                     this.player.x += (this.player.x > ox ? 2 : -2);
                     spawnParticles(this.particles, ox + o.w/2, oy, 3,
                         [COLORS.orange, COLORS.gold]);
@@ -180,6 +183,7 @@ export class Level5 {
         // Reached the altar
         if (this.progress >= 1 && !this.finished) {
             this.finished = true;
+            sfxWedding();
             this.finishTimer = 0;
         }
     }
@@ -260,8 +264,8 @@ export class Level5 {
 
         // The couple (player)
         if (!this.finished) {
-            drawHannah(ctx, this.player.x - 8, this.player.y - 16, this.frame, 2, true);
-            drawJustin(ctx, this.player.x + 8, this.player.y - 16, this.frame, 2, true);
+            drawHannah(ctx, this.player.x - 8, this.player.y - 16, this.frame, 2, 'wedding');
+            drawJustin(ctx, this.player.x + 8, this.player.y - 16, this.frame, 2, 'wedding');
         }
 
         // Particles
@@ -286,8 +290,8 @@ export class Level5 {
             ctx.globalAlpha = fadeIn;
 
             // Couple at altar
-            drawHannah(ctx, WIDTH/2 - 16, 80, 0, 2, true);
-            drawJustin(ctx, WIDTH/2 + 4, 80, 0, 2, true);
+            drawHannah(ctx, WIDTH/2 - 16, 80, 0, 2, 'wedding');
+            drawJustin(ctx, WIDTH/2 + 4, 80, 0, 2, 'wedding');
 
             // Ring between them
             const ringBounce = Math.sin(this.finishTimer * 0.05) * 3;

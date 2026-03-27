@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, input, initInput, clearInput, drawRect, drawText, COLORS } from './utils.js';
 import { STORIES } from './story.js';
+import { sfxClick, sfxLevelComplete, sfxTypeTick, startMusic, stopMusic, toggleSound, isSoundEnabled } from './audio.js';
 import { TitleScreen } from './levels/title.js';
 import { Level1 } from './levels/level1.js';
 import { Level2 } from './levels/level2.js';
@@ -80,12 +81,19 @@ function showStory(key) {
     let textContent = '';
     const allText = story.lines.join('\n');
 
+    let tickCounter = 0;
     function typeNext() {
         if (charIdx < allText.length) {
-            textContent += allText[charIdx];
+            const ch = allText[charIdx];
+            textContent += ch;
             storyTextEl.innerHTML = html + textContent.replace(/\n/g, '<br>');
             charIdx++;
-            setTimeout(typeNext, allText[charIdx - 1] === '\n' ? 150 : 30);
+            // Play tick sound every 2nd visible character (not on spaces/newlines)
+            if (ch !== ' ' && ch !== '\n') {
+                tickCounter++;
+                if (tickCounter % 2 === 0) sfxTypeTick();
+            }
+            setTimeout(typeNext, ch === '\n' ? 150 : 30);
         } else {
             continueBtn.classList.remove('hidden');
             continueBtn.classList.add('visible');
@@ -140,7 +148,20 @@ function advanceFlow() {
 
 continueBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    sfxClick();
     advanceFlow();
+});
+
+// Sound toggle button (top-right, always visible)
+const soundBtn = document.createElement('button');
+soundBtn.id = 'sound-btn';
+soundBtn.textContent = 'Sound: ON';
+soundBtn.style.cssText = 'position:absolute;top:8px;right:8px;font-family:"Press Start 2P",monospace;font-size:6px;background:#222;color:#e6c86e;border:1px solid #e6c86e;padding:4px 8px;cursor:pointer;z-index:100;';
+document.getElementById('game-container').appendChild(soundBtn);
+soundBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const on = toggleSound();
+    soundBtn.textContent = on ? 'Sound: ON' : 'Sound: OFF';
 });
 
 // Main game loop
@@ -161,6 +182,7 @@ function gameLoop(timestamp) {
         currentLevel.draw(ctx);
 
         if (currentLevel.complete) {
+            sfxLevelComplete();
             advanceFlow();
         }
     }

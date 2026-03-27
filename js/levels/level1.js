@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawJustin, drawBox } from '../sprites.js';
+import { sfxCatchBox, sfxDropBox } from '../audio.js';
 
 // Level 1: The Big Move - Catch falling boxes
 export class Level1 {
@@ -37,6 +38,23 @@ export class Level1 {
 
         // Ground
         this.groundY = HEIGHT - 24;
+
+        // Fumble animation state
+        this.fumble = {
+            active: false,
+            timer: 0,
+            text: '',
+            x: 0,
+        };
+        this.fumbleTexts = [
+            'Oops!', 'Butterfingers!', 'Too hungover!',
+            'Flip flop fail!', 'Need coffee...', 'Zzz...',
+            'Nope!', '*yawn*', 'Whoops!', 'My back!',
+        ];
+        this.fumbleIndex = 0;
+
+        // Wobble for characters when fumbling
+        this.wobble = 0;
 
         // Heat shimmer particles
         this.heatShimmer = [];
@@ -103,6 +121,7 @@ export class Level1 {
                 h: this.player.h + 8
             })) {
                 this.score++;
+                sfxCatchBox();
                 spawnParticles(this.particles, box.x + 8, box.y + 8, 6,
                     [COLORS.gold, COLORS.orange, COLORS.lightBrown]);
                 this.boxes.splice(i, 1);
@@ -111,9 +130,27 @@ export class Level1 {
 
             if (box.y > this.groundY) {
                 this.missed++;
+                sfxDropBox();
                 spawnParticles(this.particles, box.x + 8, this.groundY, 4,
                     [COLORS.red, COLORS.darkRed]);
+                // Trigger fumble animation
+                this.fumble.active = true;
+                this.fumble.timer = 70;
+                this.fumble.text = this.fumbleTexts[this.fumbleIndex % this.fumbleTexts.length];
+                this.fumble.x = box.x;
+                this.fumbleIndex++;
+                this.wobble = 1.0;
                 this.boxes.splice(i, 1);
+            }
+        }
+
+        // Update fumble animation
+        if (this.fumble.active) {
+            this.fumble.timer -= dt;
+            this.wobble *= 0.94;
+            if (this.fumble.timer <= 0) {
+                this.fumble.active = false;
+                this.wobble = 0;
             }
         }
 
@@ -222,19 +259,67 @@ export class Level1 {
         const px = this.player.x;
         const py = this.player.y;
 
+        // Wobble when fumbling
+        const wobbleOffset = this.wobble * Math.sin(this.timer * 0.5) * 6;
+
         // Catching arms visual
         drawRect(ctx, px - 2, py + 10, this.player.w + 4, 3, COLORS.brown);
         drawRect(ctx, px - 2, py + 10, 3, 3, COLORS.skin);
         drawRect(ctx, px + this.player.w - 1, py + 10, 3, 3, COLORS.skin);
 
-        drawHannah(ctx, px - 4, py - 16, this.frame, 1);
-        drawJustin(ctx, px + 16, py - 16, this.frame, 1);
+        ctx.save();
+        ctx.translate(px + 8, py + 10);
+        ctx.rotate(wobbleOffset * 0.05);
+        ctx.translate(-(px + 8), -(py + 10));
+        drawHannah(ctx, px - 4, py - 16, this.frame, 2, 'casual');
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(px + 24, py + 10);
+        ctx.rotate(-wobbleOffset * 0.05);
+        ctx.translate(-(px + 24), -(py + 10));
+        drawJustin(ctx, px + 16, py - 16, this.frame, 2, 'casual');
+        ctx.restore();
+
+        // Fumble reaction
+        if (this.fumble.active) {
+            const fadeIn = Math.min(1, (70 - this.fumble.timer) / 10);
+            const fadeOut = Math.min(1, this.fumble.timer / 15);
+            const alpha = Math.min(fadeIn, fadeOut);
+            const rise = (70 - this.fumble.timer) * 0.4;
+
+            ctx.globalAlpha = alpha;
+            // Speech bubble
+            const bubbleX = px + 16;
+            const bubbleY = py - 28 - rise;
+            const textW = this.fumble.text.length * 5 + 12;
+            drawRect(ctx, bubbleX - textW/2, bubbleY - 7, textW, 14, '#ffffff');
+            drawRect(ctx, bubbleX - textW/2 + 1, bubbleY - 6, textW - 2, 12, '#ffffff');
+            // Bubble tail
+            drawRect(ctx, bubbleX - 2, bubbleY + 6, 4, 3, '#ffffff');
+            drawRect(ctx, bubbleX - 1, bubbleY + 8, 2, 2, '#ffffff');
+            // Text
+            drawText(ctx, this.fumble.text, bubbleX, bubbleY, COLORS.red, 5);
+            ctx.globalAlpha = 1;
+
+            // Dizzy stars around characters
+            for (let i = 0; i < 3; i++) {
+                const angle = this.timer * 0.12 + i * (Math.PI * 2 / 3);
+                const sx = px + 16 + Math.cos(angle) * 14;
+                const sy = py - 14 + Math.sin(angle) * 6;
+                ctx.globalAlpha = alpha * 0.8;
+                drawRect(ctx, sx, sy, 2, 2, COLORS.gold);
+                drawRect(ctx, sx + 1, sy - 1, 1, 1, COLORS.gold);
+                drawRect(ctx, sx - 1, sy + 1, 1, 1, COLORS.gold);
+                ctx.globalAlpha = 1;
+            }
+        }
 
         // Sweat drops (it's scorching!)
         if (this.timer % 80 < 40) {
             ctx.globalAlpha = 0.7;
-            drawRect(ctx, px + 2, py - 18 + (this.timer % 40) * 0.3, 1, 2, '#6bb8e0');
-            drawRect(ctx, px + 24, py - 16 + ((this.timer + 20) % 40) * 0.3, 1, 2, '#6bb8e0');
+            drawRect(ctx, px + 2 + wobbleOffset * 0.5, py - 18 + (this.timer % 40) * 0.3, 1, 2, '#6bb8e0');
+            drawRect(ctx, px + 24 - wobbleOffset * 0.5, py - 16 + ((this.timer + 20) % 40) * 0.3, 1, 2, '#6bb8e0');
             ctx.globalAlpha = 1;
         }
 

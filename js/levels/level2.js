@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, spawnParticles, Particle } from '../utils.js';
-import { drawHannah, drawJustin, drawStar, drawHeart } from '../sprites.js';
+import { drawHannah, drawJustin, drawStar, drawHeart, drawPerson } from '../sprites.js';
+import { sfxJump, sfxCollect, sfxHit, sfxLandmark, sfxPorsche } from '../audio.js';
 
 // Level 2: Philly Nights - Side-scrolling run through Philly
 export class Level2 {
@@ -21,9 +22,9 @@ export class Level2 {
             h: 20,
             vy: 0,
             grounded: true,
-            jumpPower: -4.5,
+            jumpPower: -5.0,
         };
-        this.gravity = 0.18;
+        this.gravity = 0.16;
 
         // Landmarks along the route
         this.landmarks = [
@@ -93,7 +94,14 @@ export class Level2 {
         // Hidden Porsche easter egg
         this.porsche = { scrollX: 1750, found: false, sparkleTimer: 0 };
 
-        this.justJumped = false;
+        // Stumble animation
+        this.stumble = { active: false, timer: 0, text: '' };
+        this.stumbleTexts = [
+            'Oof!', 'Watch it!', 'Clumsy!', 'Ouch!',
+            'My toe!', 'Who put that there?!', 'Whoa!', '*trips*',
+        ];
+        this.stumbleIndex = 0;
+        this.tumbleAngle = 0;
     }
 
     generateCollectibles() {
@@ -155,6 +163,7 @@ export class Level2 {
         if ((jumpPressed || tapJump) && this.player.grounded) {
             this.player.vy = this.player.jumpPower;
             this.player.grounded = false;
+            sfxJump();
         }
 
         // Gravity
@@ -173,13 +182,14 @@ export class Level2 {
         for (const lm of this.landmarks) {
             if (!lm.reached && this.scrollX > lm.scrollX - 60 && this.scrollX < lm.scrollX + lm.w) {
                 lm.reached = true;
+                sfxLandmark();
                 this.landmarksReached++;
                 this.showLandmarkPopup = lm;
                 this.popupTimer = 0;
 
-                // Add a friend
+                // Add a friend (scale 2 = ~16px wide, offset accordingly)
                 this.friends.push({
-                    offset: -20 - this.friends.length * 16,
+                    offset: -24 - this.friends.length * 20,
                     color: ['#6a8a6a', '#8a6a6a', '#6a6a8a', '#8a8a6a'][this.friends.length % 4],
                     hair: ['#5a3a1a', '#2a1a0e', '#8a6a3a', '#3a2a1a'][this.friends.length % 4],
                 });
@@ -197,6 +207,7 @@ export class Level2 {
                 Math.abs(c.y - this.player.y) < 18) {
                 c.collected = true;
                 this.score++;
+                sfxCollect();
                 const screenX = c.scrollX - this.scrollX;
                 spawnParticles(this.particles, screenX, c.y, 5,
                     c.type === 'beer' ? [COLORS.gold, COLORS.orange] : [COLORS.gold, COLORS.white]);
@@ -211,12 +222,19 @@ export class Level2 {
                     { x: this.player.x, y: this.player.y, w: this.player.w, h: this.player.h },
                     { x: ox, y: o.y - o.h, w: o.w, h: o.h }
                 )) {
-                    // Bump back slightly, lose a collectible
+                    // Stumble!
+                    sfxHit();
                     this.scrollX -= 3;
                     if (this.score > 0) this.score--;
-                    spawnParticles(this.particles, this.player.x, this.player.y, 4,
+                    spawnParticles(this.particles, this.player.x, this.player.y, 6,
                         [COLORS.red, COLORS.orange]);
-                    o.scrollX -= 1000; // Remove obstacle
+                    o.scrollX -= 1000;
+                    // Trigger stumble animation
+                    this.stumble.active = true;
+                    this.stumble.timer = 60;
+                    this.stumble.text = this.stumbleTexts[this.stumbleIndex % this.stumbleTexts.length];
+                    this.stumbleIndex++;
+                    this.tumbleAngle = 0.4;
                 }
             }
         }
@@ -228,12 +246,23 @@ export class Level2 {
                 Math.abs(this.porsche.scrollX - playerWorldX) < 30 &&
                 this.player.y > this.groundY - 30) {
                 this.porsche.found = true;
+                sfxPorsche();
                 this.porsche.sparkleTimer = 100;
                 spawnParticles(this.particles, porscheScreenX + 16, this.groundY - 8, 10,
                     [COLORS.gold, COLORS.white, COLORS.orange]);
             }
         }
         if (this.porsche.sparkleTimer > 0) this.porsche.sparkleTimer -= dt;
+
+        // Update stumble
+        if (this.stumble.active) {
+            this.stumble.timer -= dt;
+            this.tumbleAngle *= 0.92;
+            if (this.stumble.timer <= 0) {
+                this.stumble.active = false;
+                this.tumbleAngle = 0;
+            }
+        }
 
         // Update particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -432,24 +461,62 @@ export class Level2 {
             }
         }
 
-        // Friends following behind
+        // Friends following behind (same size as player characters)
         for (let i = this.friends.length - 1; i >= 0; i--) {
             const f = this.friends[i];
             const fx = this.player.x + f.offset;
             const friendFrame = Math.floor(this.timer / 10 + i * 5) % 2;
-            // Simple friend character
-            drawRect(ctx, fx + 2, this.groundY - 18, 4, 4, f.hair); // head/hair
-            drawRect(ctx, fx + 2, this.groundY - 14, 4, 3, COLORS.skin); // face
-            drawRect(ctx, fx + 1, this.groundY - 11, 6, 6, f.color); // body
-            const legOff = friendFrame === 0 ? 0 : 1;
-            drawRect(ctx, fx + 1 - legOff, this.groundY - 5, 3, 5, '#2a2a3e');
-            drawRect(ctx, fx + 4 + legOff, this.groundY - 5, 3, 5, '#2a2a3e');
+            drawPerson(ctx, fx, this.groundY - 28, {
+                hairColor: f.hair,
+                shirtColor: f.color,
+                pantsColor: '#2a2a3e',
+                isGirl: i % 2 === 0,
+                scale: 2,
+                frame: friendFrame,
+            });
         }
 
-        // Player characters
+        // Player characters (with tumble rotation on stumble)
         const py = this.player.y;
-        drawHannah(ctx, this.player.x - 4, py - 8, this.frame, 1);
-        drawJustin(ctx, this.player.x + 10, py - 8, this.frame, 1);
+
+        ctx.save();
+        if (this.tumbleAngle > 0.01) {
+            ctx.translate(this.player.x + 8, py);
+            ctx.rotate(Math.sin(this.timer * 0.4) * this.tumbleAngle);
+            ctx.translate(-(this.player.x + 8), -py);
+        }
+        drawHannah(ctx, this.player.x - 4, py - 8, this.frame, 2, 'nightout');
+        drawJustin(ctx, this.player.x + 10, py - 8, this.frame, 2, 'nightout');
+        ctx.restore();
+
+        // Stumble speech bubble + dizzy stars
+        if (this.stumble.active) {
+            const fadeIn = Math.min(1, (60 - this.stumble.timer) / 8);
+            const fadeOut = Math.min(1, this.stumble.timer / 12);
+            const alpha = Math.min(fadeIn, fadeOut);
+            const rise = (60 - this.stumble.timer) * 0.35;
+
+            ctx.globalAlpha = alpha;
+            // Speech bubble
+            const bx = this.player.x + 10;
+            const by = py - 20 - rise;
+            const tw = this.stumble.text.length * 4.5 + 14;
+            drawRect(ctx, bx - tw/2, by - 7, tw, 14, '#ffffff');
+            drawRect(ctx, bx - 1, by + 6, 3, 3, '#ffffff');
+            drawText(ctx, this.stumble.text, bx, by, COLORS.red, 4);
+            ctx.globalAlpha = 1;
+
+            // Dizzy stars
+            ctx.globalAlpha = alpha * 0.9;
+            for (let i = 0; i < 4; i++) {
+                const angle = this.timer * 0.15 + i * (Math.PI / 2);
+                const sx = this.player.x + 10 + Math.cos(angle) * 16;
+                const sy = py - 10 + Math.sin(angle) * 5;
+                drawRect(ctx, sx, sy, 2, 2, COLORS.gold);
+                drawRect(ctx, sx + 1, sy - 1, 1, 1, '#ffffff');
+            }
+            ctx.globalAlpha = 1;
+        }
 
         // Jump effect
         if (!this.player.grounded) {

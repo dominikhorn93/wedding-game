@@ -8,6 +8,7 @@ export function drawPerson(ctx, x, y, options = {}) {
         hairColor = COLORS.brown,
         shirtColor = COLORS.blue,
         pantsColor = COLORS.dark,
+        shoeColor = null,
         skinColor = COLORS.skin,
         isGirl = false,
         scale = 2,
@@ -65,29 +66,51 @@ export function drawPerson(ctx, x, y, options = {}) {
 
     // Shoes
     if (isGirl) {
-        drawRect(ctx, px + 2*s, py + 13*s, 2*s, 1*s, COLORS.darkPink);
-        drawRect(ctx, px + 5*s, py + 13*s, 2*s, 1*s, COLORS.darkPink);
+        drawRect(ctx, px + 2*s, py + 13*s, 2*s, 1*s, shoeColor || COLORS.darkPink);
+        drawRect(ctx, px + 5*s, py + 13*s, 2*s, 1*s, shoeColor || COLORS.darkPink);
     } else {
-        drawRect(ctx, px + 1*s, py + 14*s, 3*s, 1*s, COLORS.darkGray);
-        drawRect(ctx, px + 4*s, py + 14*s, 3*s, 1*s, COLORS.darkGray);
+        drawRect(ctx, px + 1*s, py + 14*s, 3*s, 1*s, shoeColor || COLORS.darkGray);
+        drawRect(ctx, px + 4*s, py + 14*s, 3*s, 1*s, shoeColor || COLORS.darkGray);
     }
 }
 
-export function drawHannah(ctx, x, y, frame = 0, scale = 2, wedding = false) {
+// Outfit presets per level context
+// Hannah's dark hair and face always stay the same
+const HANNAH_OUTFITS = {
+    casual:  { shirtColor: '#e88888', shoeColor: '#cc7755' },           // L1: tank top + flip flops (hot day)
+    nightout:{ shirtColor: '#cc55aa', shoeColor: COLORS.darkPink },     // L2: going-out top
+    concert: { shirtColor: '#7755aa', shoeColor: '#555555' },           // L3: concert tee
+    date:    { shirtColor: '#dd6688', shoeColor: '#884455' },           // L4: cute date outfit
+    wedding: { shirtColor: '#f5f0ee', shoeColor: '#f0e0d0' },          // L5: white wedding dress
+};
+
+const JUSTIN_OUTFITS = {
+    casual:  { shirtColor: '#6688bb', pantsColor: '#555566', shoeColor: '#aa8866' },    // L1: tee + shorts + flip flops
+    nightout:{ shirtColor: '#446688', pantsColor: '#2a2a3e', shoeColor: '#333344' },    // L2: button-down
+    concert: { shirtColor: '#555577', pantsColor: '#2a2a3e', shoeColor: '#333344' },    // L3: concert look
+    date:    { shirtColor: '#4466aa', pantsColor: '#222233', shoeColor: '#222222' },    // L4: date outfit
+    wedding: { shirtColor: '#1a1a2e', pantsColor: '#1a1a2e', shoeColor: '#111111' },    // L5: dark suit
+};
+
+export function drawHannah(ctx, x, y, frame = 0, scale = 2, outfit = 'casual') {
+    const o = HANNAH_OUTFITS[outfit] || HANNAH_OUTFITS.casual;
     drawPerson(ctx, x, y, {
         hairColor: '#2a1a0e',
-        shirtColor: wedding ? '#f5f0f0' : COLORS.pink,
+        shirtColor: o.shirtColor,
+        shoeColor: o.shoeColor,
         isGirl: true,
         scale,
         frame,
     });
 }
 
-export function drawJustin(ctx, x, y, frame = 0, scale = 2, wedding = false) {
+export function drawJustin(ctx, x, y, frame = 0, scale = 2, outfit = 'casual') {
+    const o = JUSTIN_OUTFITS[outfit] || JUSTIN_OUTFITS.casual;
     drawPerson(ctx, x, y, {
         hairColor: COLORS.brown,
-        shirtColor: wedding ? '#1a1a2e' : COLORS.blue,
-        pantsColor: wedding ? '#1a1a2e' : '#2a2a3e',
+        shirtColor: o.shirtColor,
+        pantsColor: o.pantsColor,
+        shoeColor: o.shoeColor,
         isGirl: false,
         scale,
         frame,

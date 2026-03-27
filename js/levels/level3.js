@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawMusicNote, drawPerson } from '../sprites.js';
+import { sfxCollect, sfxHit } from '../audio.js';
 
 // Level 3: The Concert Mix-Up - Dodge awkward moments, collect music notes
 export class Level3 {
@@ -32,7 +33,7 @@ export class Level3 {
         ];
 
         // Justin with his date (background characters moving around)
-        this.justinPos = { x: WIDTH - 60, y: HEIGHT - 80 };
+        this.justinPos = { x: WIDTH - 80, y: HEIGHT - 85 };
         this.justinDir = -1;
 
         // Crowd silhouettes
@@ -119,6 +120,7 @@ export class Level3 {
 
             if (rectsOverlap(n, this.player)) {
                 this.score++;
+                sfxCollect();
                 spawnParticles(this.particles, n.x + 4, n.y + 4, 4,
                     [COLORS.gold, COLORS.orange]);
                 this.notes.splice(i, 1);
@@ -134,6 +136,7 @@ export class Level3 {
 
             if (rectsOverlap(o, this.player)) {
                 this.health--;
+                sfxHit();
                 spawnParticles(this.particles, o.x + 12, o.y + 6, 6,
                     [COLORS.red, COLORS.darkRed]);
                 this.obstacles.splice(i, 1);
@@ -151,7 +154,7 @@ export class Level3 {
         // Justin moving in background
         this.justinPos.x += this.justinDir * 0.3 * dt;
         if (this.justinPos.x < WIDTH/2) this.justinDir = 1;
-        if (this.justinPos.x > WIDTH - 40) this.justinDir = -1;
+        if (this.justinPos.x > WIDTH - 60) this.justinDir = -1;
 
         // Crowd bounce
         for (const c of this.crowd) {
@@ -212,20 +215,22 @@ export class Level3 {
             drawRect(ctx, c.x + 1, c.y + bounce - 4, 6, 5, c.color);
         }
 
-        // Justin + date in background (awkward!)
+        // Justin + date in background (awkward!) - same scale as Hannah
         drawPerson(ctx, this.justinPos.x, this.justinPos.y, {
-            shirtColor: COLORS.blue,
-            scale: 1,
+            hairColor: COLORS.brown,
+            shirtColor: '#555577',
+            pantsColor: '#2a2a3e',
+            scale: 2,
             frame: this.frame,
         });
-        drawPerson(ctx, this.justinPos.x + 12, this.justinPos.y, {
+        drawPerson(ctx, this.justinPos.x + 18, this.justinPos.y, {
             isGirl: true,
             hairColor: '#aa5533',
             shirtColor: '#aa66aa',
-            scale: 1,
+            scale: 2,
             frame: this.frame,
         });
-        drawText(ctx, 'Justin + ???', this.justinPos.x + 8, this.justinPos.y - 8, COLORS.red, 3);
+        drawText(ctx, 'Justin + ???', this.justinPos.x + 16, this.justinPos.y - 6, COLORS.red, 4);
 
         // Music notes (collectibles)
         for (const n of this.notes) {
@@ -239,7 +244,7 @@ export class Level3 {
         }
 
         // Player (Hannah)
-        drawHannah(ctx, this.player.x - 2, this.player.y - 8, this.frame, 1);
+        drawHannah(ctx, this.player.x - 2, this.player.y - 8, this.frame, 2, 'concert');
 
         // Thought bubble
         const thoughtBounce = Math.sin(this.timer * 0.06) * 2;

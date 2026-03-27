@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, drawTextWrapped, randFloat } from '../utils.js';
 import { drawHannah, drawJustin, drawHeart } from '../sprites.js';
+import { sfxClick, sfxIntro, startMusic } from '../audio.js';
 
 export class TitleScreen {
     constructor() {
@@ -7,6 +8,7 @@ export class TitleScreen {
         this.timer = 0;
         this.hearts = [];
         this.twinkle = 0;
+        this.introPlayed = false;
 
         // Floating hearts background
         for (let i = 0; i < 12; i++) {
@@ -24,6 +26,12 @@ export class TitleScreen {
         this.timer += dt;
         this.twinkle += 0.05;
 
+        // Play intro chime once (after first user interaction unlocks audio)
+        if (!this.introPlayed && this.timer > 2) {
+            this.introPlayed = true;
+            sfxIntro();
+        }
+
         // Animate hearts
         for (const h of this.hearts) {
             h.y -= h.speed * dt;
@@ -37,10 +45,14 @@ export class TitleScreen {
         // Click to start
         if (this.timer > 60 && input.mouse.clicked) {
             this.complete = true;
+            sfxClick();
+            startMusic();
         }
         // Key to start
         if (this.timer > 60 && (input.keys['Enter'] || input.keys[' '] || input.keys['Space'])) {
             this.complete = true;
+            sfxClick();
+            startMusic();
         }
     }
 
@@ -75,8 +87,8 @@ export class TitleScreen {
         const justinX = WIDTH/2 + 14;
         const charY = 100;
 
-        drawHannah(ctx, hannahX, charY, Math.floor(this.timer / 30) % 2);
-        drawJustin(ctx, justinX, charY, Math.floor(this.timer / 30) % 2);
+        drawHannah(ctx, hannahX, charY, Math.floor(this.timer / 30) % 2, 2);
+        drawJustin(ctx, justinX, charY, Math.floor(this.timer / 30) % 2, 2);
 
         // Heart between them
         const heartBeat = Math.sin(this.timer * 0.08) * 2;

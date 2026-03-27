@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, pointInRect, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawJustin, drawHeart, drawMusicNote } from '../sprites.js';
+import { sfxHeartClick } from '../audio.js';
 
 // Level 4: The Real First Date - Rhythm/clicking game at The Fillmore
 export class Level4 {
@@ -96,6 +97,7 @@ export class Level4 {
                     h: h.size + 8,
                 })) {
                     h.hit = true;
+                    sfxHeartClick();
                     this.combo++;
                     this.maxCombo = Math.max(this.maxCombo, this.combo);
 
@@ -177,8 +179,8 @@ export class Level4 {
         // Characters (center bottom, swaying)
         const sway = Math.sin(this.swayPhase) * 3;
         const charY = HEIGHT - 60;
-        drawHannah(ctx, WIDTH/2 - 20 + sway, charY, this.frame, 2);
-        drawJustin(ctx, WIDTH/2 + 6 - sway, charY, this.frame, 2);
+        drawHannah(ctx, WIDTH/2 - 20 + sway, charY, this.frame, 2, 'date');
+        drawJustin(ctx, WIDTH/2 + 6 - sway, charY, this.frame, 2, 'date');
 
         // Clickable hearts
         for (const h of this.hearts) {
