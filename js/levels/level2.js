@@ -1,6 +1,6 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, spawnParticles, Particle } from '../utils.js';
 import { drawHannah, drawJustin, drawStar, drawHeart, drawPerson } from '../sprites.js';
-import { sfxJump, sfxCollect, sfxHit, sfxLandmark, sfxPorsche } from '../audio.js';
+import { sfxJump, sfxCollect, sfxHit, sfxLandmark } from '../audio.js';
 
 // Level 2: Philly Nights - Side-scrolling run through Philly
 export class Level2 {
@@ -91,8 +91,6 @@ export class Level2 {
             });
         }
 
-        // Hidden Porsche easter egg
-        this.porsche = { scrollX: 1750, found: false, sparkleTimer: 0 };
 
         this.failed = false;
         this.health = 4;
@@ -254,20 +252,6 @@ export class Level2 {
             }
         }
 
-        // Porsche easter egg
-        if (!this.porsche.found) {
-            const porscheScreenX = this.porsche.scrollX - this.scrollX;
-            if (porscheScreenX > -10 && porscheScreenX < WIDTH &&
-                Math.abs(this.porsche.scrollX - playerWorldX) < 30 &&
-                this.player.y > this.groundY - 30) {
-                this.porsche.found = true;
-                sfxPorsche();
-                this.porsche.sparkleTimer = 100;
-                spawnParticles(this.particles, porscheScreenX + 16, this.groundY - 8, 10,
-                    [COLORS.gold, COLORS.white, COLORS.orange]);
-            }
-        }
-        if (this.porsche.sparkleTimer > 0) this.porsche.sparkleTimer -= dt;
 
         // Update stumble
         if (this.stumble.active) {
@@ -404,17 +388,6 @@ export class Level2 {
             }
         }
 
-        // Hidden Porsche
-        const porscheX = this.porsche.scrollX - this.scrollX;
-        if (porscheX > -40 && porscheX < WIDTH + 10) {
-            this.drawPorsche(ctx, porscheX, this.groundY - 18);
-            if (this.porsche.found && this.porsche.sparkleTimer > 0) {
-                const alpha = Math.min(1, this.porsche.sparkleTimer / 30);
-                ctx.globalAlpha = alpha;
-                drawText(ctx, 'Nice car!', porscheX + 16, this.groundY - 22, COLORS.gold, 5);
-                ctx.globalAlpha = 1;
-            }
-        }
 
         // Sidewalk
         drawRect(ctx, 0, this.groundY - 4, WIDTH, 4, '#555560');
@@ -698,81 +671,4 @@ export class Level2 {
         }
     }
 
-    // Pixel art Porsche 911
-    // Detailed Porsche 911 pixel art (side view, ~36x18)
-    drawPorsche(ctx, x, y) {
-        // Shadow on ground
-        ctx.globalAlpha = 0.25;
-        drawRect(ctx, x + 2, y + 16, 32, 2, '#000000');
-        ctx.globalAlpha = 1;
-
-        // Iconic 911 body - silver metallic
-        // Lower body
-        drawRect(ctx, x + 2, y + 7, 32, 6, '#b8b8c0');
-        // Front fender (sloped hood)
-        drawRect(ctx, x + 1, y + 5, 8, 4, '#c0c0c8');
-        drawRect(ctx, x, y + 6, 4, 3, '#b0b0b8');
-        // Roof section (low, sleek)
-        drawRect(ctx, x + 8, y + 2, 12, 5, '#c8c8d0');
-        // Rear sloping roofline (signature 911)
-        drawRect(ctx, x + 20, y + 3, 4, 4, '#c0c0c8');
-        drawRect(ctx, x + 24, y + 4, 3, 4, '#b8b8c0');
-        // Rear deck / engine cover (flat back)
-        drawRect(ctx, x + 27, y + 5, 6, 5, '#b0b0b8');
-        // Rear spoiler hint
-        drawRect(ctx, x + 28, y + 4, 5, 1, '#a0a0a8');
-
-        // Windshield
-        drawRect(ctx, x + 9, y + 2, 5, 4, '#4477aa');
-        drawRect(ctx, x + 10, y + 3, 3, 2, '#5588bb'); // reflection
-        // Rear window (small, sloped - classic 911)
-        drawRect(ctx, x + 15, y + 2, 5, 4, '#4477aa');
-        drawRect(ctx, x + 16, y + 3, 2, 2, '#5588bb');
-
-        // Side window
-        drawRect(ctx, x + 14, y + 3, 1, 3, '#b8b8c0'); // B-pillar
-
-        // Front bumper
-        drawRect(ctx, x - 1, y + 9, 4, 3, '#a0a0a8');
-        // Rear bumper
-        drawRect(ctx, x + 32, y + 9, 3, 3, '#a0a0a8');
-
-        // Iconic round headlights
-        drawRect(ctx, x - 1, y + 5, 3, 3, '#ffee66');
-        drawRect(ctx, x, y + 6, 1, 1, '#ffffff');
-        // Taillights (horizontal bar - modern 911)
-        drawRect(ctx, x + 33, y + 6, 2, 2, '#ee2222');
-        drawRect(ctx, x + 33, y + 8, 2, 1, '#ff4444');
-
-        // Door line
-        drawRect(ctx, x + 13, y + 5, 1, 7, '#a8a8b0');
-        // Door handle
-        drawRect(ctx, x + 15, y + 7, 2, 1, '#888890');
-
-        // Side vent / intake
-        drawRect(ctx, x + 22, y + 8, 4, 2, '#888890');
-        drawRect(ctx, x + 23, y + 9, 2, 1, '#666670');
-
-        // Wheels - detailed with spokes
-        // Front wheel
-        drawRect(ctx, x + 4, y + 12, 7, 5, '#1a1a1a');
-        drawRect(ctx, x + 5, y + 13, 5, 3, '#333333');
-        drawRect(ctx, x + 6, y + 14, 3, 1, '#888888'); // spoke
-        drawRect(ctx, x + 7, y + 13, 1, 3, '#888888'); // spoke
-        // Rear wheel (slightly bigger - RWD stance)
-        drawRect(ctx, x + 24, y + 12, 8, 5, '#1a1a1a');
-        drawRect(ctx, x + 25, y + 13, 6, 3, '#333333');
-        drawRect(ctx, x + 27, y + 14, 3, 1, '#888888');
-        drawRect(ctx, x + 28, y + 13, 1, 3, '#888888');
-
-        // Porsche crest (tiny gold on front fender)
-        drawRect(ctx, x + 3, y + 7, 2, 2, COLORS.gold);
-        drawRect(ctx, x + 4, y + 8, 1, 1, '#cc0000');
-
-        // Metallic shine highlights
-        ctx.globalAlpha = 0.2;
-        drawRect(ctx, x + 2, y + 5, 30, 1, '#ffffff');
-        drawRect(ctx, x + 9, y + 2, 10, 1, '#ffffff');
-        ctx.globalAlpha = 1;
-    }
 }

@@ -451,21 +451,33 @@ export class Level5 {
             ctx.globalAlpha = 1;
         }
 
-        // Touch zone indicators (visible on touch devices)
+        // Touch buttons (visible on touch devices)
         if ('ontouchstart' in window) {
-            const touchAlpha = (input.mouse.down || input.touch.active) ? 0.25 : 0.12;
             const leftActive = input.mouse.down && input.mouse.x < WIDTH / 3;
             const rightActive = input.mouse.down && input.mouse.x > WIDTH * 2 / 3;
+            const btnW = 54;
+            const btnH = 40;
+            const btnY = HEIGHT - btnH - 6;
+            const btnLX = 8;
+            const btnRX = WIDTH - btnW - 8;
 
-            // Left zone
-            ctx.globalAlpha = leftActive ? 0.3 : touchAlpha;
-            drawRect(ctx, 0, HEIGHT - 50, WIDTH / 3, 50, '#ffffff');
-            drawText(ctx, '<', WIDTH / 6, HEIGHT - 25, '#ffffff', 16);
+            // Left button
+            ctx.globalAlpha = leftActive ? 0.85 : 0.45;
+            drawRect(ctx, btnLX, btnY, btnW, btnH, '#1a1a2e');
+            drawRect(ctx, btnLX, btnY, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnLX, btnY + btnH - 2, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnLX, btnY, 2, btnH, COLORS.gold);
+            drawRect(ctx, btnLX + btnW - 2, btnY, 2, btnH, COLORS.gold);
+            drawText(ctx, '<', btnLX + btnW / 2, btnY + btnH / 2, COLORS.gold, 18);
 
-            // Right zone
-            ctx.globalAlpha = rightActive ? 0.3 : touchAlpha;
-            drawRect(ctx, WIDTH * 2 / 3, HEIGHT - 50, WIDTH / 3, 50, '#ffffff');
-            drawText(ctx, '>', WIDTH * 5 / 6, HEIGHT - 25, '#ffffff', 16);
+            // Right button
+            ctx.globalAlpha = rightActive ? 0.85 : 0.45;
+            drawRect(ctx, btnRX, btnY, btnW, btnH, '#1a1a2e');
+            drawRect(ctx, btnRX, btnY, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnRX, btnY + btnH - 2, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnRX, btnY, 2, btnH, COLORS.gold);
+            drawRect(ctx, btnRX + btnW - 2, btnY, 2, btnH, COLORS.gold);
+            drawText(ctx, '>', btnRX + btnW / 2, btnY + btnH / 2, COLORS.gold, 18);
 
             ctx.globalAlpha = 1;
         }

@@ -411,6 +411,37 @@ export class LevelOktoberfest {
             ctx.globalAlpha = 1;
         }
 
+        // ── touch buttons (visible on touch devices) ──
+        if ('ontouchstart' in window) {
+            const leftActive = this.swayPos < -this.hitZone;
+            const rightActive = this.swayPos > this.hitZone;
+            const btnW = 54;
+            const btnH = 40;
+            const btnY = HEIGHT - btnH - 6;
+            const btnLX = 8;
+            const btnRX = WIDTH - btnW - 8;
+
+            // Left button
+            ctx.globalAlpha = leftActive ? 0.85 : 0.45;
+            drawRect(ctx, btnLX, btnY, btnW, btnH, '#1a1a2e');
+            drawRect(ctx, btnLX, btnY, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnLX, btnY + btnH - 2, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnLX, btnY, 2, btnH, COLORS.gold);
+            drawRect(ctx, btnLX + btnW - 2, btnY, 2, btnH, COLORS.gold);
+            drawText(ctx, '<', btnLX + btnW / 2, btnY + btnH / 2, COLORS.gold, 18);
+
+            // Right button
+            ctx.globalAlpha = rightActive ? 0.85 : 0.45;
+            drawRect(ctx, btnRX, btnY, btnW, btnH, '#1a1a2e');
+            drawRect(ctx, btnRX, btnY, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnRX, btnY + btnH - 2, btnW, 2, COLORS.gold);
+            drawRect(ctx, btnRX, btnY, 2, btnH, COLORS.gold);
+            drawRect(ctx, btnRX + btnW - 2, btnY, 2, btnH, COLORS.gold);
+            drawText(ctx, '>', btnRX + btnW / 2, btnY + btnH / 2, COLORS.gold, 18);
+
+            ctx.globalAlpha = 1;
+        }
+
         // ── particles ──
         for (const p of this.particles) p.draw(ctx);
 
