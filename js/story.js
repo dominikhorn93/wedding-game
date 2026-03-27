@@ -141,8 +141,9 @@ export const STORIES = {
             "To the most beautiful day",
             "of their lives.",
             "",
-            "Guide them down the aisle!",
-            "Collect flowers, dodge jitters!",
+            "Jump your way to the altar!",
+            "LEFT/RIGHT to move, auto-jump!",
+            "Dodge the jitters!",
         ],
     },
 
@@ -160,7 +161,7 @@ export const STORIES = {
             "Here's to forever!",
             "",
             "With love from Germany,",
-            "Dominik",
+            "Dominik & Camilla",
         ],
     },
 };

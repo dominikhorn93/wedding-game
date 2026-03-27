@@ -1,9 +1,10 @@
 // Retro sound effects via Web Audio API - no files needed
+// Each level has its own sound palette to match the mood
 
 let ctx = null;
 let enabled = true;
 let musicPlaying = false;
-let musicGain = null;
+let currentMelody = null;
 let musicTimeout = null;
 
 function getCtx() {
@@ -54,7 +55,7 @@ function playSweep(startFreq, endFreq, duration = 0.15, type = 'square', volume 
     } catch (e) { /* ignore */ }
 }
 
-// Noise burst (for impacts)
+// Noise burst
 function playNoise(duration = 0.08, volume = 0.08) {
     if (!enabled) return;
     try {
@@ -76,157 +77,288 @@ function playNoise(duration = 0.08, volume = 0.08) {
     } catch (e) { /* ignore */ }
 }
 
-// === GAME SOUND EFFECTS ===
+// ========================================
+// GLOBAL UI SOUNDS
+// ========================================
 
-// Intro chime - magical/dreamy opening sound
+// Intro chime - magical/dreamy opening
 export function sfxIntro() {
-    // Soft ascending chime
-    playTone(330, 0.3, 'sine', 0.06, 0);     // E
-    playTone(392, 0.3, 'sine', 0.06, 0.2);   // G
-    playTone(494, 0.3, 'sine', 0.06, 0.4);   // B
-    playTone(587, 0.3, 'sine', 0.07, 0.6);   // D
-    playTone(659, 0.4, 'sine', 0.08, 0.8);   // E high
-    playTone(784, 0.5, 'sine', 0.08, 1.0);   // G high
-    // Sparkle on top
+    playTone(330, 0.3, 'sine', 0.06, 0);
+    playTone(392, 0.3, 'sine', 0.06, 0.2);
+    playTone(494, 0.3, 'sine', 0.06, 0.4);
+    playTone(587, 0.3, 'sine', 0.07, 0.6);
+    playTone(659, 0.4, 'sine', 0.08, 0.8);
+    playTone(784, 0.5, 'sine', 0.08, 1.0);
     playTone(1319, 0.15, 'sine', 0.04, 1.2);
     playTone(1568, 0.2, 'sine', 0.03, 1.35);
 }
 
-// Typewriter tick - small blip for each character
+// Typewriter tick
 export function sfxTypeTick() {
     if (!enabled) return;
     try {
         const ac = getCtx();
         const osc = ac.createOscillator();
         const gain = ac.createGain();
-        // Randomize pitch slightly for natural feel
-        const freq = 800 + Math.random() * 400;
         osc.type = 'square';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.03, ac.currentTime);
-        gain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.02);
+        osc.frequency.value = 800 + Math.random() * 400;
+        gain.gain.setValueAtTime(0.025, ac.currentTime);
+        gain.gain.linearRampToValueAtTime(0, ac.currentTime + 0.018);
         osc.connect(gain);
         gain.connect(ac.destination);
         osc.start();
-        osc.stop(ac.currentTime + 0.025);
+        osc.stop(ac.currentTime + 0.02);
     } catch (e) { /* ignore */ }
-}
-
-export function sfxJump() {
-    playSweep(250, 500, 0.12, 'square', 0.1);
-}
-
-export function sfxCollect() {
-    playTone(880, 0.06, 'square', 0.1);
-    playTone(1100, 0.08, 'square', 0.1, 0.06);
-}
-
-export function sfxCatchBox() {
-    playTone(440, 0.05, 'square', 0.1);
-    playTone(660, 0.08, 'square', 0.1, 0.05);
-}
-
-export function sfxDropBox() {
-    playSweep(300, 100, 0.2, 'sawtooth', 0.1);
-    playNoise(0.12, 0.06);
-}
-
-export function sfxHit() {
-    playSweep(400, 120, 0.15, 'square', 0.1);
-    playNoise(0.1, 0.05);
-}
-
-export function sfxHeartClick() {
-    playTone(660, 0.05, 'sine', 0.12);
-    playTone(880, 0.06, 'sine', 0.12, 0.04);
-    playTone(1100, 0.08, 'sine', 0.1, 0.08);
-}
-
-export function sfxLandmark() {
-    // Happy arpeggio
-    playTone(523, 0.1, 'square', 0.1, 0);      // C
-    playTone(659, 0.1, 'square', 0.1, 0.1);     // E
-    playTone(784, 0.1, 'square', 0.1, 0.2);     // G
-    playTone(1047, 0.15, 'square', 0.12, 0.3);  // C high
-}
-
-export function sfxLevelComplete() {
-    // Victory fanfare
-    playTone(523, 0.12, 'square', 0.1, 0);
-    playTone(523, 0.12, 'square', 0.1, 0.15);
-    playTone(523, 0.12, 'square', 0.1, 0.3);
-    playTone(659, 0.15, 'square', 0.1, 0.45);
-    playTone(784, 0.2, 'square', 0.12, 0.6);
-    playTone(1047, 0.3, 'square', 0.12, 0.85);
 }
 
 export function sfxClick() {
     playTone(600, 0.04, 'square', 0.08);
 }
 
-export function sfxWedding() {
-    // Wedding bells / chime
-    playTone(1047, 0.3, 'sine', 0.1, 0);
-    playTone(1319, 0.3, 'sine', 0.1, 0.15);
-    playTone(1568, 0.3, 'sine', 0.1, 0.3);
-    playTone(2093, 0.5, 'sine', 0.12, 0.45);
-    playTone(1568, 0.3, 'sine', 0.08, 0.7);
-    playTone(2093, 0.6, 'sine', 0.12, 0.85);
+// Victory fanfare (between levels)
+export function sfxLevelComplete() {
+    playTone(523, 0.12, 'square', 0.08, 0);
+    playTone(523, 0.12, 'square', 0.08, 0.15);
+    playTone(523, 0.12, 'square', 0.08, 0.3);
+    playTone(659, 0.15, 'square', 0.08, 0.45);
+    playTone(784, 0.2, 'square', 0.1, 0.6);
+    playTone(1047, 0.3, 'square', 0.1, 0.85);
 }
 
+// ========================================
+// LEVEL 1: THE BIG MOVE - Hot summer day
+// Clunky, heavy, physical sounds
+// ========================================
+
+// Heavy box thud when caught
+export function sfxCatchBox() {
+    playTone(180, 0.06, 'square', 0.1);
+    playNoise(0.04, 0.06);
+    playTone(350, 0.08, 'sine', 0.06, 0.06); // small success chime
+}
+
+// Box crash on ground - cardboard crumple
+export function sfxDropBox() {
+    playSweep(250, 80, 0.15, 'sawtooth', 0.08);
+    playNoise(0.15, 0.08);
+    // Sad descending tone
+    playTone(300, 0.08, 'square', 0.05, 0.05);
+    playTone(200, 0.12, 'square', 0.05, 0.1);
+}
+
+// ========================================
+// LEVEL 2: PHILLY NIGHTS - Upbeat city
+// Bouncy, energetic, urban sounds
+// ========================================
+
+// Springy jump
+export function sfxJump() {
+    playSweep(200, 550, 0.1, 'square', 0.08);
+    playTone(550, 0.04, 'sine', 0.04, 0.1);
+}
+
+// Coin-like beer/star collect
+export function sfxCollect() {
+    playTone(880, 0.05, 'square', 0.08);
+    playTone(1175, 0.07, 'square', 0.08, 0.05);
+}
+
+// Trip/stumble on obstacle
+export function sfxHit() {
+    playSweep(350, 100, 0.12, 'square', 0.08);
+    playNoise(0.08, 0.05);
+    playTone(150, 0.1, 'square', 0.04, 0.08);
+}
+
+// Arrive at a bar/landmark - party horn
+export function sfxLandmark() {
+    playTone(523, 0.08, 'square', 0.08, 0);
+    playTone(659, 0.08, 'square', 0.08, 0.08);
+    playTone(784, 0.08, 'square', 0.08, 0.16);
+    playTone(1047, 0.2, 'square', 0.1, 0.24);
+    // Party sparkle
+    playTone(1568, 0.08, 'sine', 0.04, 0.35);
+    playTone(2093, 0.1, 'sine', 0.03, 0.4);
+}
+
+// Hidden porsche - engine rev
 export function sfxPorsche() {
-    // Engine rev
-    playSweep(80, 200, 0.3, 'sawtooth', 0.08);
-    playSweep(200, 350, 0.2, 'sawtooth', 0.06);
+    playSweep(60, 150, 0.25, 'sawtooth', 0.06);
+    playSweep(150, 300, 0.2, 'sawtooth', 0.05);
+    playSweep(300, 500, 0.15, 'sawtooth', 0.04);
 }
 
-// === SIMPLE BACKGROUND MUSIC ===
-// A gentle looping melody
+// ========================================
+// LEVEL 3: CONCERT MIX-UP - Live music
+// Musical, chaotic, bass-heavy
+// ========================================
 
-const MELODY_NOTES = [
-    // Simple romantic melody (note, duration, pause)
-    [392, 0.3], // G
-    [440, 0.3], // A
-    [494, 0.3], // B
-    [523, 0.5], // C
-    [494, 0.3], // B
-    [440, 0.3], // A
-    [392, 0.5], // G
-    [0, 0.3],   // rest
-    [330, 0.3], // E
-    [392, 0.3], // G
-    [440, 0.3], // A
-    [494, 0.5], // B
-    [440, 0.3], // A
-    [392, 0.3], // G
-    [330, 0.5], // E
-    [0, 0.5],   // rest
-];
+// Collect music note - actual musical tone
+export function sfxMusicNote() {
+    const notes = [523, 587, 659, 698, 784, 880];
+    const note = notes[Math.floor(Math.random() * notes.length)];
+    playTone(note, 0.12, 'sine', 0.1);
+    playTone(note * 1.5, 0.08, 'sine', 0.04, 0.06); // harmonic
+}
+
+// Awkward moment hit - record scratch feel
+export function sfxAwkward() {
+    playSweep(800, 200, 0.1, 'sawtooth', 0.06);
+    playNoise(0.06, 0.04);
+    playTone(150, 0.15, 'square', 0.05, 0.05);
+}
+
+// ========================================
+// LEVEL 4: REAL FIRST DATE - Romantic
+// Warm, soft, glowing, heart sounds
+// ========================================
+
+// Heart click - warm ascending sparkle
+export function sfxHeartClick() {
+    playTone(523, 0.06, 'sine', 0.1);
+    playTone(659, 0.06, 'sine', 0.1, 0.04);
+    playTone(784, 0.08, 'sine', 0.1, 0.08);
+    playTone(1047, 0.1, 'sine', 0.06, 0.12);
+}
+
+// Heart missed (expired) - soft sigh
+export function sfxHeartMiss() {
+    playSweep(500, 300, 0.15, 'sine', 0.04);
+}
+
+// Combo milestone
+export function sfxCombo() {
+    playTone(784, 0.05, 'sine', 0.08);
+    playTone(988, 0.05, 'sine', 0.08, 0.05);
+    playTone(1175, 0.05, 'sine', 0.08, 0.1);
+    playTone(1568, 0.1, 'sine', 0.06, 0.15);
+}
+
+// ========================================
+// LEVEL 5: WEDDING DAY - Ceremonial
+// Grand, elegant, bells, celebration
+// ========================================
+
+// Flower collect - light chime
+export function sfxFlower() {
+    playTone(1047, 0.08, 'sine', 0.06);
+    playTone(1319, 0.1, 'sine', 0.05, 0.06);
+}
+
+// Jitters bump - gentle comedy
+export function sfxJitters() {
+    playTone(300, 0.06, 'square', 0.04);
+    playTone(250, 0.08, 'square', 0.04, 0.05);
+}
+
+// Wedding ceremony - bells & triumph
+export function sfxWedding() {
+    // Bell chime pattern
+    playTone(1047, 0.4, 'sine', 0.08, 0);
+    playTone(1319, 0.4, 'sine', 0.08, 0.2);
+    playTone(1568, 0.4, 'sine', 0.08, 0.4);
+    playTone(2093, 0.6, 'sine', 0.1, 0.6);
+    // Second ring
+    playTone(1568, 0.3, 'sine', 0.06, 0.9);
+    playTone(2093, 0.8, 'sine', 0.1, 1.1);
+    // Triumphant chord underneath
+    playTone(523, 0.8, 'sine', 0.04, 0.6);
+    playTone(659, 0.8, 'sine', 0.04, 0.6);
+    playTone(784, 0.8, 'sine', 0.04, 0.6);
+}
+
+// ========================================
+// LEVEL-SPECIFIC BACKGROUND MUSIC
+// Each level has its own melody loop
+// ========================================
+
+const MELODIES = {
+    // Title / Story: gentle romantic
+    default: {
+        notes: [
+            [392, 0.3], [440, 0.3], [494, 0.3], [523, 0.5],
+            [494, 0.3], [440, 0.3], [392, 0.5], [0, 0.3],
+            [330, 0.3], [392, 0.3], [440, 0.3], [494, 0.5],
+            [440, 0.3], [392, 0.3], [330, 0.5], [0, 0.5],
+        ],
+        type: 'sine',
+        volume: 0.035,
+    },
+    // L1: Upbeat working tune (hot day hauling boxes)
+    moving: {
+        notes: [
+            [262, 0.2], [294, 0.2], [330, 0.2], [262, 0.2],
+            [330, 0.2], [349, 0.2], [330, 0.4], [0, 0.2],
+            [330, 0.2], [349, 0.2], [392, 0.2], [330, 0.2],
+            [349, 0.2], [330, 0.2], [294, 0.4], [0, 0.2],
+        ],
+        type: 'square',
+        volume: 0.025,
+    },
+    // L2: Fun city groove
+    nightout: {
+        notes: [
+            [330, 0.15], [0, 0.05], [330, 0.15], [0, 0.05], [392, 0.2], [0, 0.1],
+            [440, 0.15], [0, 0.05], [392, 0.2], [330, 0.3], [0, 0.2],
+            [294, 0.15], [0, 0.05], [330, 0.15], [0, 0.05], [392, 0.2], [0, 0.1],
+            [440, 0.2], [494, 0.2], [440, 0.3], [0, 0.3],
+        ],
+        type: 'square',
+        volume: 0.025,
+    },
+    // L3: Tense/funny concert vibe
+    concert: {
+        notes: [
+            [220, 0.2], [262, 0.2], [294, 0.2], [330, 0.3], [0, 0.1],
+            [294, 0.2], [262, 0.2], [220, 0.3], [0, 0.2],
+            [196, 0.2], [220, 0.2], [262, 0.3], [294, 0.2],
+            [262, 0.2], [220, 0.3], [196, 0.3], [0, 0.3],
+        ],
+        type: 'sawtooth',
+        volume: 0.02,
+    },
+    // L4: Soft romantic waltz
+    date: {
+        notes: [
+            [392, 0.4], [494, 0.2], [523, 0.4], [0, 0.2],
+            [587, 0.4], [523, 0.2], [494, 0.4], [0, 0.2],
+            [440, 0.4], [494, 0.2], [523, 0.4], [0, 0.2],
+            [587, 0.4], [659, 0.2], [587, 0.4], [0, 0.4],
+        ],
+        type: 'sine',
+        volume: 0.035,
+    },
+    // L5: Grand wedding march
+    wedding: {
+        notes: [
+            [523, 0.4], [0, 0.1], [523, 0.2], [523, 0.4], [0, 0.1],
+            [659, 0.3], [587, 0.2], [523, 0.4], [0, 0.2],
+            [587, 0.3], [659, 0.2], [698, 0.4], [0, 0.2],
+            [659, 0.4], [0, 0.1], [587, 0.2], [523, 0.4], [0, 0.4],
+        ],
+        type: 'sine',
+        volume: 0.035,
+    },
+};
 
 let melodyIndex = 0;
 
 function playMelodyNote() {
     if (!musicPlaying || !enabled) return;
-    const [freq, dur] = MELODY_NOTES[melodyIndex % MELODY_NOTES.length];
+    const melody = MELODIES[currentMelody] || MELODIES.default;
+    const [freq, dur] = melody.notes[melodyIndex % melody.notes.length];
     if (freq > 0) {
         try {
             const ac = getCtx();
             const osc = ac.createOscillator();
             const gain = ac.createGain();
-            osc.type = 'sine';
+            osc.type = melody.type;
             osc.frequency.value = freq;
-
-            if (!musicGain) {
-                musicGain = ac.createGain();
-                musicGain.connect(ac.destination);
-            }
-            musicGain.gain.value = 0.04;
-
             gain.gain.setValueAtTime(0, ac.currentTime);
-            gain.gain.linearRampToValueAtTime(0.04, ac.currentTime + 0.02);
+            gain.gain.linearRampToValueAtTime(melody.volume, ac.currentTime + 0.02);
             gain.gain.linearRampToValueAtTime(0, ac.currentTime + dur * 0.9);
             osc.connect(gain);
-            gain.connect(musicGain);
+            gain.connect(ac.destination);
             osc.start();
             osc.stop(ac.currentTime + dur);
         } catch (e) { /* ignore */ }
@@ -235,9 +367,10 @@ function playMelodyNote() {
     musicTimeout = setTimeout(playMelodyNote, dur * 1000);
 }
 
-export function startMusic() {
-    if (musicPlaying) return;
+export function startMusic(melodyName = 'default') {
+    stopMusic();
     musicPlaying = true;
+    currentMelody = melodyName;
     melodyIndex = 0;
     playMelodyNote();
 }

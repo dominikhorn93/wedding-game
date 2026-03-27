@@ -1,11 +1,12 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, rectsOverlap, clamp, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawMusicNote, drawPerson } from '../sprites.js';
-import { sfxCollect, sfxHit } from '../audio.js';
+import { sfxMusicNote, sfxAwkward } from '../audio.js';
 
 // Level 3: The Concert Mix-Up - Dodge awkward moments, collect music notes
 export class Level3 {
     constructor() {
         this.complete = false;
+        this.failed = false;
         this.timer = 0;
         this.frame = 0;
         this.score = 0;
@@ -64,6 +65,7 @@ export class Level3 {
     }
 
     update(dt) {
+        if (this.failed) return;
         this.timer += dt;
         this.frame = Math.floor(this.timer / 15) % 2;
         this.bannerFlash += 0.03;
@@ -120,7 +122,7 @@ export class Level3 {
 
             if (rectsOverlap(n, this.player)) {
                 this.score++;
-                sfxCollect();
+                sfxMusicNote();
                 spawnParticles(this.particles, n.x + 4, n.y + 4, 4,
                     [COLORS.gold, COLORS.orange]);
                 this.notes.splice(i, 1);
@@ -136,7 +138,7 @@ export class Level3 {
 
             if (rectsOverlap(o, this.player)) {
                 this.health--;
-                sfxHit();
+                sfxAwkward();
                 spawnParticles(this.particles, o.x + 12, o.y + 6, 6,
                     [COLORS.red, COLORS.darkRed]);
                 this.obstacles.splice(i, 1);
@@ -166,9 +168,8 @@ export class Level3 {
             this.complete = true;
         }
 
-        // Lose - be forgiving, just reset health
         if (this.health <= 0) {
-            this.health = 5;
+            this.failed = true;
         }
     }
 

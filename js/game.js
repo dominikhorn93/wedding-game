@@ -1,6 +1,6 @@
 import { WIDTH, HEIGHT, input, initInput, clearInput, drawRect, drawText, COLORS } from './utils.js';
 import { STORIES } from './story.js';
-import { sfxClick, sfxLevelComplete, sfxTypeTick, startMusic, stopMusic, toggleSound, isSoundEnabled } from './audio.js';
+import { sfxClick, sfxLevelComplete, sfxTypeTick, sfxHit, startMusic, stopMusic, toggleSound } from './audio.js';
 import { TitleScreen } from './levels/title.js';
 import { Level1 } from './levels/level1.js';
 import { Level2 } from './levels/level2.js';
@@ -35,23 +35,28 @@ let currentStoryKey = null;
 let nextAction = null;
 let levelIndex = 0;
 
+// Retry state
+let retryScreen = false;
+let retryTimer = 0;
+let lastLevelStep = null;
+
 // Level flow definition
 const FLOW = [
     { type: 'scene', create: () => new TitleScreen() },
     { type: 'story', key: 'level1_intro' },
-    { type: 'level', create: () => new Level1() },
+    { type: 'level', create: () => new Level1(), music: 'moving' },
     { type: 'story', key: 'level1_outro' },
     { type: 'story', key: 'level2_intro' },
-    { type: 'level', create: () => new Level2() },
+    { type: 'level', create: () => new Level2(), music: 'nightout' },
     { type: 'story', key: 'level2_outro' },
     { type: 'story', key: 'level3_intro' },
-    { type: 'level', create: () => new Level3() },
+    { type: 'level', create: () => new Level3(), music: 'concert' },
     { type: 'story', key: 'level3_outro' },
     { type: 'story', key: 'level4_intro' },
-    { type: 'level', create: () => new Level4() },
+    { type: 'level', create: () => new Level4(), music: 'date' },
     { type: 'story', key: 'level4_outro' },
     { type: 'story', key: 'level5_intro' },
-    { type: 'level', create: () => new Level5() },
+    { type: 'level', create: () => new Level5(), music: 'wedding' },
     { type: 'story', key: 'finale' },
 ];
 
@@ -138,11 +143,14 @@ function advanceFlow() {
     flowIndex++;
 
     if (step.type === 'story') {
+        startMusic('default');
         showStory(step.key);
     } else if (step.type === 'scene' || step.type === 'level') {
         hideStory();
         currentScene = SCENES.PLAYING;
         currentLevel = step.create();
+        lastLevelStep = step;
+        if (step.music) startMusic(step.music);
     }
 }
 
@@ -178,12 +186,44 @@ function gameLoop(timestamp) {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     if (currentScene === SCENES.PLAYING && currentLevel) {
-        currentLevel.update(dt / FRAME_TIME);
-        currentLevel.draw(ctx);
+        if (retryScreen) {
+            // Draw frozen level behind
+            currentLevel.draw(ctx);
+            // Dark overlay
+            ctx.fillStyle = 'rgba(10, 10, 25, 0.75)';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            retryTimer += dt / FRAME_TIME;
+            // Retry text
+            const bounce = Math.sin(retryTimer * 0.06) * 2;
+            drawText(ctx, 'Oops!', WIDTH/2, HEIGHT/2 - 20 + bounce, COLORS.pink, 14);
+            if (retryTimer > 30) {
+                drawText(ctx, 'Try again?', WIDTH/2, HEIGHT/2 + 10, COLORS.white, 8);
+            }
+            if (retryTimer > 50 && Math.floor(retryTimer / 20) % 2 === 0) {
+                drawText(ctx, 'Click or press Enter', WIDTH/2, HEIGHT/2 + 30, COLORS.gold, 6);
+            }
+            // Retry on click/key
+            if (retryTimer > 50 && (input.mouse.clicked || input.keys['Enter'] || input.keys[' '])) {
+                retryScreen = false;
+                retryTimer = 0;
+                sfxClick();
+                currentLevel = lastLevelStep.create();
+                if (lastLevelStep.music) startMusic(lastLevelStep.music);
+            }
+        } else {
+            currentLevel.update(dt / FRAME_TIME);
+            currentLevel.draw(ctx);
 
-        if (currentLevel.complete) {
-            sfxLevelComplete();
-            advanceFlow();
+            if (currentLevel.complete) {
+                sfxLevelComplete();
+                advanceFlow();
+            }
+            if (currentLevel.failed) {
+                sfxHit();
+                retryScreen = true;
+                retryTimer = 0;
+                stopMusic();
+            }
         }
     }
 

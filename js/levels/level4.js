@@ -1,11 +1,13 @@
 import { WIDTH, HEIGHT, COLORS, input, drawRect, drawText, pointInRect, randInt, randFloat, Particle, spawnParticles } from '../utils.js';
 import { drawHannah, drawJustin, drawHeart, drawMusicNote } from '../sprites.js';
-import { sfxHeartClick } from '../audio.js';
+import { sfxHeartClick, sfxCombo } from '../audio.js';
 
 // Level 4: The Real First Date - Rhythm/clicking game at The Fillmore
 export class Level4 {
     constructor() {
         this.complete = false;
+        this.failed = false;
+        this.drainStarted = false;
         this.timer = 0;
         this.frame = 0;
 
@@ -50,21 +52,22 @@ export class Level4 {
     }
 
     update(dt) {
+        if (this.failed) return;
         this.timer += dt;
         this.frame = Math.floor(this.timer / 20) % 2;
         this.swayPhase += 0.03;
 
         // Spawn clickable hearts
         this.spawnTimer += dt;
-        const spawnRate = Math.max(15, 35 - this.love * 0.15);
+        const spawnRate = Math.max(12, 28 - this.love * 0.12);
         if (this.spawnTimer > spawnRate) {
             this.spawnTimer = 0;
             this.hearts.push({
                 x: randInt(20, WIDTH - 30),
                 y: randInt(50, HEIGHT - 70),
-                size: randInt(10, 16),
-                life: 80, // frames before disappearing
-                maxLife: 80,
+                size: randInt(12, 20),
+                life: 110,
+                maxLife: 110,
                 hit: false,
                 // Pulsing animation
                 phase: randFloat(0, Math.PI * 2),
@@ -78,8 +81,8 @@ export class Level4 {
             h.phase += 0.08;
 
             if (h.life <= 0) {
-                if (!h.hit) {
-                    this.combo = 0; // reset combo on miss
+                if (!h.hit && this.combo > 2) {
+                    this.combo = Math.max(0, this.combo - 2); // gentle penalty
                 }
                 this.hearts.splice(i, 1);
             }
@@ -91,18 +94,22 @@ export class Level4 {
             for (let i = this.hearts.length - 1; i >= 0; i--) {
                 const h = this.hearts[i];
                 if (!h.hit && pointInRect(input.mouse.x, input.mouse.y, {
-                    x: h.x - 4,
-                    y: h.y - 4,
-                    w: h.size + 8,
-                    h: h.size + 8,
+                    x: h.x - 8,
+                    y: h.y - 8,
+                    w: h.size + 16,
+                    h: h.size + 16,
                 })) {
                     h.hit = true;
-                    sfxHeartClick();
                     this.combo++;
                     this.maxCombo = Math.max(this.maxCombo, this.combo);
+                    if (this.combo > 0 && this.combo % 5 === 0) {
+                        sfxCombo();
+                    } else {
+                        sfxHeartClick();
+                    }
 
                     // Love gain scales with combo
-                    const gain = Math.min(5, 2 + Math.floor(this.combo / 3));
+                    const gain = Math.min(7, 3 + Math.floor(this.combo / 2));
                     this.love = Math.min(this.maxLove, this.love + gain);
 
                     // Particles
@@ -132,9 +139,17 @@ export class Level4 {
             if (this.particles[i].dead) this.particles.splice(i, 1);
         }
 
-        // Win
+        // Win check BEFORE drain
         if (this.love >= this.maxLove) {
             this.complete = true;
+            return;
+        }
+
+        // Love drains very slowly (gentle pressure, not punishing)
+        if (this.love >= 40) this.drainStarted = true;
+        if (this.drainStarted) {
+            this.love = Math.max(0, this.love - 0.02 * dt);
+            if (this.love <= 0) this.failed = true;
         }
     }
 

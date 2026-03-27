@@ -6,6 +6,7 @@ import { sfxCatchBox, sfxDropBox } from '../audio.js';
 export class Level1 {
     constructor() {
         this.complete = false;
+        this.failed = false;
         this.timer = 0;
         this.score = 0;
         this.targetScore = 15;
@@ -82,6 +83,7 @@ export class Level1 {
     }
 
     update(dt) {
+        if (this.failed) return;
         this.timer += dt;
         this.frame = Math.floor(this.timer / 15) % 2;
 
@@ -175,7 +177,7 @@ export class Level1 {
         }
 
         if (this.missed >= this.maxMissed) {
-            this.missed = 0;
+            this.failed = true;
         }
     }
 

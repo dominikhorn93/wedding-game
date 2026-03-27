@@ -94,6 +94,9 @@ export class Level2 {
         // Hidden Porsche easter egg
         this.porsche = { scrollX: 1750, found: false, sparkleTimer: 0 };
 
+        this.failed = false;
+        this.health = 4;
+
         // Stumble animation
         this.stumble = { active: false, timer: 0, text: '' };
         this.stumbleTexts = [
@@ -124,22 +127,27 @@ export class Level2 {
     }
 
     generateObstacles() {
-        for (let x = 180; x < this.totalLength - 100; x += randInt(80, 150)) {
+        const types = [0, 1, 2, 3, 4]; // scooter, taxi, dog walker, street musician, drunk friend
+        for (let x = 180; x < this.totalLength - 100; x += randInt(90, 160)) {
             const nearLandmark = this.landmarks.some(l => Math.abs(x - l.scrollX) < 90);
             if (nearLandmark) continue;
 
-            const type = randInt(0, 2);
+            const type = types[randInt(0, types.length - 1)];
             this.obstacles.push({
                 scrollX: x,
                 y: this.groundY,
-                w: type === 0 ? 14 : type === 1 ? 18 : 12,
-                h: type === 0 ? 12 : type === 1 ? 8 : 14,
-                type, // 0=hydrant, 1=puddle, 2=cone
+                w: type === 1 ? 28 : type === 3 ? 16 : 14,
+                h: type === 1 ? 14 : type === 4 ? 16 : 12,
+                type,
+                // 0=parked scooter, 1=taxi pulling up, 2=dog on leash
+                // 3=street musician, 4=wobbly drunk friend
+                wobble: randFloat(0, Math.PI * 2),
             });
         }
     }
 
     update(dt) {
+        if (this.failed) return;
         this.timer += dt;
         this.frame = Math.floor(this.timer / 10) % 2;
 
@@ -214,18 +222,25 @@ export class Level2 {
             }
         }
 
-        // Check obstacle collisions
+        // Check obstacle collisions (use tighter hitboxes matching visual sprites)
         for (const o of this.obstacles) {
             const ox = o.scrollX - this.scrollX;
             if (ox > -20 && ox < WIDTH) {
+                // Hitbox matching visual per type
+                let hx, hy, hw, hh;
+                if (o.type === 1) { hx = ox + 2; hy = o.y - o.h; hw = o.w - 4; hh = o.h; } // taxi (wider)
+                else { hx = ox + 2; hy = o.y - o.h; hw = o.w - 4; hh = o.h; }
+
+                // Also shrink player hitbox slightly for fairness
                 if (rectsOverlap(
-                    { x: this.player.x, y: this.player.y, w: this.player.w, h: this.player.h },
-                    { x: ox, y: o.y - o.h, w: o.w, h: o.h }
+                    { x: this.player.x + 3, y: this.player.y + 4, w: this.player.w - 6, h: this.player.h - 4 },
+                    { x: hx, y: hy, w: hw, h: hh }
                 )) {
                     // Stumble!
                     sfxHit();
+                    this.health--;
                     this.scrollX -= 3;
-                    if (this.score > 0) this.score--;
+                    if (this.health <= 0) this.failed = true;
                     spawnParticles(this.particles, this.player.x, this.player.y, 6,
                         [COLORS.red, COLORS.orange]);
                     o.scrollX -= 1000;
@@ -392,7 +407,7 @@ export class Level2 {
         // Hidden Porsche
         const porscheX = this.porsche.scrollX - this.scrollX;
         if (porscheX > -40 && porscheX < WIDTH + 10) {
-            this.drawPorsche(ctx, porscheX, this.groundY - 14);
+            this.drawPorsche(ctx, porscheX, this.groundY - 18);
             if (this.porsche.found && this.porsche.sparkleTimer > 0) {
                 const alpha = Math.min(1, this.porsche.sparkleTimer / 30);
                 ctx.globalAlpha = alpha;
@@ -418,23 +433,112 @@ export class Level2 {
             const ox = o.scrollX - this.scrollX;
             if (ox < -20 || ox > WIDTH + 20) continue;
 
+            const oy = o.y;
             if (o.type === 0) {
-                // Fire hydrant
-                drawRect(ctx, ox + 3, o.y - o.h, 8, o.h, '#cc3333');
-                drawRect(ctx, ox + 1, o.y - o.h + 2, 12, 3, '#dd4444');
-                drawRect(ctx, ox + 5, o.y - o.h - 2, 4, 3, '#cc3333');
+                // Parked e-scooter (knocked over)
+                const ty = oy - o.h;
+                drawRect(ctx, ox + 2, ty + 2, 10, 2, '#555555');        // deck
+                drawRect(ctx, ox + 1, ty, 3, 4, '#666666');             // handlebar post
+                drawRect(ctx, ox, ty - 1, 5, 2, '#777777');             // handlebar
+                drawRect(ctx, ox + 10, ty + 2, 3, 3, '#444444');        // rear
+                drawRect(ctx, ox + 2, ty + 4, 4, 4, '#333333');         // front wheel
+                drawRect(ctx, ox + 9, ty + 4, 4, 4, '#333333');         // rear wheel
+                drawRect(ctx, ox + 3, ty + 5, 2, 2, '#555555');         // spoke
+                drawRect(ctx, ox + 10, ty + 5, 2, 2, '#555555');
+                // Blinking light
+                if (Math.floor(this.timer / 20) % 2 === 0) {
+                    drawRect(ctx, ox, ty - 2, 2, 2, '#44ff44');
+                }
             } else if (o.type === 1) {
-                // Puddle
-                ctx.globalAlpha = 0.5;
-                drawRect(ctx, ox, o.y - 2, o.w, 3, '#4466aa');
-                drawRect(ctx, ox + 2, o.y - 3, o.w - 4, 2, '#5577bb');
-                ctx.globalAlpha = 1;
+                // Taxi pulling up (side view)
+                const ty = oy - o.h;
+                // Body
+                drawRect(ctx, ox, ty + 4, o.w, 8, '#f0cc00');
+                drawRect(ctx, ox + 6, ty + 1, 10, 5, '#f0cc00');        // roof
+                // Taxi sign on roof
+                drawRect(ctx, ox + 9, ty - 1, 6, 3, '#ffffff');
+                drawText(ctx, 'TAXI', ox + 12, ty, '#222222', 2);
+                // Windows
+                drawRect(ctx, ox + 7, ty + 2, 4, 3, '#88bbdd');
+                drawRect(ctx, ox + 12, ty + 2, 3, 3, '#88bbdd');
+                // Wheels
+                drawRect(ctx, ox + 3, ty + 11, 5, 3, '#222222');
+                drawRect(ctx, ox + 20, ty + 11, 5, 3, '#222222');
+                // Headlights
+                drawRect(ctx, ox + o.w - 1, ty + 6, 2, 2, '#ffee88');
+                // Taillights
+                drawRect(ctx, ox, ty + 6, 2, 2, '#ee3333');
+            } else if (o.type === 2) {
+                // Dog on leash (cute pixel dog)
+                const ty = oy - o.h;
+                // Leash post (going off screen to imaginary owner)
+                drawRect(ctx, ox + 10, ty - 2, 1, 6, '#886644');
+                // Dog body
+                drawRect(ctx, ox + 2, ty + 3, 8, 5, '#bb8844');
+                drawRect(ctx, ox + 3, ty + 4, 6, 3, '#cc9955');
+                // Head
+                drawRect(ctx, ox, ty + 2, 4, 4, '#bb8844');
+                drawRect(ctx, ox, ty + 3, 3, 2, '#cc9955');
+                // Ears
+                drawRect(ctx, ox, ty + 1, 2, 2, '#aa7733');
+                // Eye
+                drawRect(ctx, ox + 1, ty + 3, 1, 1, '#222222');
+                // Nose
+                drawRect(ctx, ox - 1, ty + 4, 1, 1, '#333333');
+                // Tail (wagging)
+                const wagX = Math.sin(this.timer * 0.2 + (o.wobble || 0)) * 2;
+                drawRect(ctx, ox + 10 + wagX, ty + 2, 2, 2, '#bb8844');
+                // Legs
+                drawRect(ctx, ox + 2, ty + 8, 2, 4, '#aa7733');
+                drawRect(ctx, ox + 7, ty + 8, 2, 4, '#aa7733');
+            } else if (o.type === 3) {
+                // Street musician with open guitar case
+                const ty = oy - 16;
+                // Person
+                drawRect(ctx, ox + 4, ty, 4, 4, '#553322');             // hat
+                drawRect(ctx, ox + 5, ty + 4, 4, 3, COLORS.skin);      // face
+                drawRect(ctx, ox + 4, ty + 7, 6, 6, '#664488');         // body
+                drawRect(ctx, ox + 3, ty + 13, 3, 4, '#222233');        // legs
+                drawRect(ctx, ox + 8, ty + 13, 3, 4, '#222233');
+                // Guitar
+                drawRect(ctx, ox + 1, ty + 8, 3, 6, '#884422');
+                drawRect(ctx, ox + 1, ty + 6, 1, 4, '#aa8844');         // neck
+                // Open case on ground with coins
+                drawRect(ctx, ox - 1, oy - 3, 10, 3, '#333333');
+                drawRect(ctx, ox, oy - 2, 8, 1, '#221111');
+                // Coins
+                drawRect(ctx, ox + 1, oy - 2, 2, 1, COLORS.gold);
+                drawRect(ctx, ox + 5, oy - 2, 2, 1, '#cccccc');
+                // Music notes floating
+                const noteY = ty - 4 + Math.sin(this.timer * 0.08 + (o.wobble || 0)) * 3;
+                drawRect(ctx, ox + 10, noteY, 2, 4, COLORS.gold);
+                drawRect(ctx, ox + 12, noteY, 2, 1, COLORS.gold);
             } else {
-                // Traffic cone
-                drawRect(ctx, ox + 3, o.y - o.h, 6, o.h, '#ff8833');
-                drawRect(ctx, ox + 4, o.y - o.h + 3, 4, 2, '#ffffff');
-                drawRect(ctx, ox + 4, o.y - o.h + 7, 4, 2, '#ffffff');
-                drawRect(ctx, ox, o.y - 2, 12, 3, '#ff8833');
+                // Wobbly drunk friend stumbling
+                const ty = oy - 16;
+                const wobble = Math.sin(this.timer * 0.1 + (o.wobble || 0)) * 3;
+                ctx.save();
+                ctx.translate(ox + 7, oy);
+                ctx.rotate(wobble * 0.06);
+                ctx.translate(-(ox + 7), -oy);
+                // Person stumbling
+                drawRect(ctx, ox + 4, ty + 1, 4, 4, '#996633');         // hair
+                drawRect(ctx, ox + 4, ty + 4, 5, 3, COLORS.skin);      // face
+                drawRect(ctx, ox + 3, ty + 7, 7, 6, '#33aa55');         // green shirt
+                drawRect(ctx, ox + 3, ty + 13, 3, 3, '#222233');        // legs
+                drawRect(ctx, ox + 7, ty + 13, 3, 3, '#222233');
+                // Arms out (balancing)
+                drawRect(ctx, ox, ty + 8, 3, 2, COLORS.skin);
+                drawRect(ctx, ox + 10, ty + 9, 3, 2, COLORS.skin);
+                // Solo cup in hand
+                drawRect(ctx, ox + 11, ty + 8, 3, 3, '#ffffff');
+                drawRect(ctx, ox + 11, ty + 8, 3, 1, '#cc2222');
+                ctx.restore();
+                // Dizzy stars
+                const starAngle = this.timer * 0.12 + (o.wobble || 0);
+                const sx = ox + 7 + Math.cos(starAngle) * 8;
+                const sy = ty - 2 + Math.sin(starAngle) * 4;
+                drawRect(ctx, sx, sy, 2, 2, COLORS.gold);
             }
         }
 
@@ -550,6 +654,12 @@ export class Level2 {
         drawRect(ctx, 10, 16, 6, 8, COLORS.gold);
         drawRect(ctx, 11, 17, 4, 3, '#ffee88');
 
+        // Health hearts
+        for (let i = 0; i < 4; i++) {
+            const c = i < this.health ? COLORS.pink : '#333344';
+            drawRect(ctx, WIDTH / 2 - 22 + i * 12, 16, 8, 8, c);
+        }
+
         // Landmarks visited
         drawText(ctx, `${this.landmarksReached}/3`, WIDTH - 20, 20, COLORS.white, 6);
 
@@ -589,22 +699,80 @@ export class Level2 {
     }
 
     // Pixel art Porsche 911
+    // Detailed Porsche 911 pixel art (side view, ~36x18)
     drawPorsche(ctx, x, y) {
-        drawRect(ctx, x + 2, y + 14, 28, 2, 'rgba(0,0,0,0.3)');
-        drawRect(ctx, x + 2, y + 6, 28, 6, '#c0c0c0');
-        drawRect(ctx, x + 6, y + 3, 10, 4, '#c0c0c0');
-        drawRect(ctx, x + 16, y + 4, 6, 3, '#c0c0c0');
-        drawRect(ctx, x + 4, y + 2, 4, 2, '#c0c0c0');
-        drawRect(ctx, x + 7, y + 3, 4, 3, '#6699bb');
-        drawRect(ctx, x + 12, y + 3, 4, 3, '#6699bb');
-        drawRect(ctx, x, y + 8, 4, 4, '#aaaaaa');
-        drawRect(ctx, x + 28, y + 8, 3, 4, '#aaaaaa');
-        drawRect(ctx, x, y + 6, 3, 2, '#ffee88');
-        drawRect(ctx, x + 29, y + 7, 2, 2, '#ee4444');
-        drawRect(ctx, x + 5, y + 11, 5, 4, '#222222');
-        drawRect(ctx, x + 6, y + 12, 3, 2, '#666666');
-        drawRect(ctx, x + 22, y + 11, 5, 4, '#222222');
-        drawRect(ctx, x + 23, y + 12, 3, 2, '#666666');
-        drawRect(ctx, x + 3, y + 7, 1, 1, COLORS.gold);
+        // Shadow on ground
+        ctx.globalAlpha = 0.25;
+        drawRect(ctx, x + 2, y + 16, 32, 2, '#000000');
+        ctx.globalAlpha = 1;
+
+        // Iconic 911 body - silver metallic
+        // Lower body
+        drawRect(ctx, x + 2, y + 7, 32, 6, '#b8b8c0');
+        // Front fender (sloped hood)
+        drawRect(ctx, x + 1, y + 5, 8, 4, '#c0c0c8');
+        drawRect(ctx, x, y + 6, 4, 3, '#b0b0b8');
+        // Roof section (low, sleek)
+        drawRect(ctx, x + 8, y + 2, 12, 5, '#c8c8d0');
+        // Rear sloping roofline (signature 911)
+        drawRect(ctx, x + 20, y + 3, 4, 4, '#c0c0c8');
+        drawRect(ctx, x + 24, y + 4, 3, 4, '#b8b8c0');
+        // Rear deck / engine cover (flat back)
+        drawRect(ctx, x + 27, y + 5, 6, 5, '#b0b0b8');
+        // Rear spoiler hint
+        drawRect(ctx, x + 28, y + 4, 5, 1, '#a0a0a8');
+
+        // Windshield
+        drawRect(ctx, x + 9, y + 2, 5, 4, '#4477aa');
+        drawRect(ctx, x + 10, y + 3, 3, 2, '#5588bb'); // reflection
+        // Rear window (small, sloped - classic 911)
+        drawRect(ctx, x + 15, y + 2, 5, 4, '#4477aa');
+        drawRect(ctx, x + 16, y + 3, 2, 2, '#5588bb');
+
+        // Side window
+        drawRect(ctx, x + 14, y + 3, 1, 3, '#b8b8c0'); // B-pillar
+
+        // Front bumper
+        drawRect(ctx, x - 1, y + 9, 4, 3, '#a0a0a8');
+        // Rear bumper
+        drawRect(ctx, x + 32, y + 9, 3, 3, '#a0a0a8');
+
+        // Iconic round headlights
+        drawRect(ctx, x - 1, y + 5, 3, 3, '#ffee66');
+        drawRect(ctx, x, y + 6, 1, 1, '#ffffff');
+        // Taillights (horizontal bar - modern 911)
+        drawRect(ctx, x + 33, y + 6, 2, 2, '#ee2222');
+        drawRect(ctx, x + 33, y + 8, 2, 1, '#ff4444');
+
+        // Door line
+        drawRect(ctx, x + 13, y + 5, 1, 7, '#a8a8b0');
+        // Door handle
+        drawRect(ctx, x + 15, y + 7, 2, 1, '#888890');
+
+        // Side vent / intake
+        drawRect(ctx, x + 22, y + 8, 4, 2, '#888890');
+        drawRect(ctx, x + 23, y + 9, 2, 1, '#666670');
+
+        // Wheels - detailed with spokes
+        // Front wheel
+        drawRect(ctx, x + 4, y + 12, 7, 5, '#1a1a1a');
+        drawRect(ctx, x + 5, y + 13, 5, 3, '#333333');
+        drawRect(ctx, x + 6, y + 14, 3, 1, '#888888'); // spoke
+        drawRect(ctx, x + 7, y + 13, 1, 3, '#888888'); // spoke
+        // Rear wheel (slightly bigger - RWD stance)
+        drawRect(ctx, x + 24, y + 12, 8, 5, '#1a1a1a');
+        drawRect(ctx, x + 25, y + 13, 6, 3, '#333333');
+        drawRect(ctx, x + 27, y + 14, 3, 1, '#888888');
+        drawRect(ctx, x + 28, y + 13, 1, 3, '#888888');
+
+        // Porsche crest (tiny gold on front fender)
+        drawRect(ctx, x + 3, y + 7, 2, 2, COLORS.gold);
+        drawRect(ctx, x + 4, y + 8, 1, 1, '#cc0000');
+
+        // Metallic shine highlights
+        ctx.globalAlpha = 0.2;
+        drawRect(ctx, x + 2, y + 5, 30, 1, '#ffffff');
+        drawRect(ctx, x + 9, y + 2, 10, 1, '#ffffff');
+        ctx.globalAlpha = 1;
     }
 }
