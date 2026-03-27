@@ -168,7 +168,7 @@ continueBtn.addEventListener('click', (e) => {
 const soundBtn = document.createElement('button');
 soundBtn.id = 'sound-btn';
 soundBtn.textContent = 'Sound: ON';
-soundBtn.style.cssText = 'position:absolute;top:8px;right:8px;font-family:"Press Start 2P",monospace;font-size:6px;background:#222;color:#e6c86e;border:1px solid #e6c86e;padding:4px 8px;cursor:pointer;z-index:100;';
+soundBtn.style.cssText = 'position:absolute;top:8px;right:8px;font-family:"Press Start 2P",monospace;font-size:7px;background:#222;color:#e6c86e;border:2px solid #e6c86e;padding:6px 10px;cursor:pointer;z-index:100;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
 document.getElementById('game-container').appendChild(soundBtn);
 soundBtn.addEventListener('click', (e) => {
     e.stopPropagation();
