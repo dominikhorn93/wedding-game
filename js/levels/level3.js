@@ -60,7 +60,7 @@ export class Level3 {
 
         this.particles = [];
 
-        // "LOCAL NATIVES" banner
+        // "THE FIRE" banner
         this.bannerFlash = 0;
     }
 
@@ -196,10 +196,10 @@ export class Level3 {
             ctx.globalAlpha = 1;
         }
 
-        // "LOCAL NATIVES" banner on stage
+        // "THE FIRE" banner on stage
         const bannerGlow = Math.sin(this.bannerFlash) * 0.2 + 0.8;
         ctx.globalAlpha = bannerGlow;
-        drawText(ctx, 'LOCAL NATIVES', WIDTH/2, 16, COLORS.gold, 8);
+        drawText(ctx, 'THE FIRE', WIDTH/2, 16, COLORS.gold, 8);
         ctx.globalAlpha = 1;
 
         // Band silhouettes on stage
