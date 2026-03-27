@@ -1,6 +1,6 @@
 // Game constants
-export const WIDTH = 320;
-export const HEIGHT = 240;
+export const WIDTH = 240;
+export const HEIGHT = 320;
 export const SCALE = 1;
 
 // Colors

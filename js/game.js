@@ -235,6 +235,6 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// Start
+// Start — temporarily skip to title for testing portrait mode
 advanceFlow();
 requestAnimationFrame(gameLoop);

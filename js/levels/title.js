@@ -79,13 +79,15 @@ export class TitleScreen {
 
         // Title
         const bounce = Math.sin(this.timer * 0.04) * 3;
-        drawText(ctx, 'Hannah & Justin', WIDTH/2, 50 + bounce, COLORS.gold, 12);
-        drawText(ctx, 'A Love Story', WIDTH/2, 72 + bounce, COLORS.pink, 10);
+        drawText(ctx, 'Hannah', WIDTH/2, 55 + bounce, COLORS.gold, 11);
+        drawText(ctx, '&', WIDTH/2, 75 + bounce, COLORS.pink, 8);
+        drawText(ctx, 'Justin', WIDTH/2, 95 + bounce, COLORS.gold, 11);
+        drawText(ctx, 'A Love Story', WIDTH/2, 120 + bounce, COLORS.pink, 7);
 
         // Characters
-        const hannahX = WIDTH/2 - 30;
-        const justinX = WIDTH/2 + 14;
-        const charY = 100;
+        const hannahX = WIDTH/2 - 28;
+        const justinX = WIDTH/2 + 12;
+        const charY = 150;
 
         drawHannah(ctx, hannahX, charY, Math.floor(this.timer / 30) % 2, 2);
         drawJustin(ctx, justinX, charY, Math.floor(this.timer / 30) % 2, 2);
@@ -95,15 +97,16 @@ export class TitleScreen {
         drawHeart(ctx, WIDTH/2 - 5, charY + 8 + heartBeat, 10, COLORS.pink);
 
         // Subtitle
-        drawText(ctx, 'March 28, 2026', WIDTH/2, 170, COLORS.white, 7);
-        drawText(ctx, 'Pen Ryn Estate', WIDTH/2, 184, COLORS.lightGray, 6);
+        drawText(ctx, 'March 28, 2026', WIDTH/2, 230, COLORS.white, 6);
+        drawText(ctx, 'Pen Ryn Estate', WIDTH/2, 244, COLORS.lightGray, 5);
 
         // Press start (blinking)
         if (this.timer > 60 && Math.floor(this.timer / 30) % 2 === 0) {
-            drawText(ctx, 'Click or Press Enter', WIDTH/2, 218, COLORS.gold, 7);
+            drawText(ctx, 'Click or Press Enter', WIDTH/2, 285, COLORS.gold, 5);
         }
 
         // Bottom credit
-        drawText(ctx, 'A gift with love from Germany', WIDTH/2, 235, COLORS.darkGray, 5);
+        drawText(ctx, 'A gift with love', WIDTH/2, 305, COLORS.darkGray, 4);
+        drawText(ctx, 'from Germany', WIDTH/2, 314, COLORS.darkGray, 4);
     }
 }

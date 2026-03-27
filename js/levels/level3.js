@@ -52,7 +52,7 @@ export class Level3 {
         this.lights = [];
         for (let i = 0; i < 5; i++) {
             this.lights.push({
-                x: 30 + i * 65,
+                x: 20 + i * 50,
                 phase: i * 1.2,
                 color: [COLORS.pink, COLORS.blue, COLORS.purple, COLORS.gold, COLORS.green][i],
             });
@@ -204,7 +204,7 @@ export class Level3 {
 
         // Band silhouettes on stage
         for (let i = 0; i < 4; i++) {
-            const bx = 60 + i * 55;
+            const bx = 30 + i * 50;
             drawRect(ctx, bx, 18, 6, 14, '#222233');
             drawRect(ctx, bx + 1, 15, 4, 4, '#222233');
         }

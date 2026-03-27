@@ -216,13 +216,13 @@ export class Level1 {
         this.drawHouse(ctx, WIDTH - 70, 45, 55, 35);
 
         // Background tree
-        drawRect(ctx, 130, 48, 4, 32, '#6a5030');
-        drawRect(ctx, 122, 35, 20, 18, '#4a8a4a');
-        drawRect(ctx, 126, 30, 12, 12, '#5a9a5a');
+        drawRect(ctx, 95, 48, 4, 32, '#6a5030');
+        drawRect(ctx, 87, 35, 20, 18, '#4a8a4a');
+        drawRect(ctx, 91, 30, 12, 12, '#5a9a5a');
 
         // Another small tree
-        drawRect(ctx, 180, 55, 3, 25, '#6a5030');
-        drawRect(ctx, 174, 45, 15, 14, '#4a8a4a');
+        drawRect(ctx, 140, 55, 3, 25, '#6a5030');
+        drawRect(ctx, 134, 45, 15, 14, '#4a8a4a');
 
         // Sidewalk / driveway
         drawRect(ctx, 0, this.groundY - 4, WIDTH, 4, '#b0a898');

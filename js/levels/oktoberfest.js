@@ -59,7 +59,7 @@ export class LevelOktoberfest {
 
         // Garland lights
         this.lights = [];
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 12; i++) {
             this.lights.push({
                 x: 5 + i * 20,
                 phase: i * 0.8,
@@ -236,9 +236,9 @@ export class LevelOktoberfest {
 
         // ── tent roof (Bavarian diamonds) ──
         for (let row = 0; row < 4; row++) {
-            for (let col = 0; col < 21; col++) {
+            for (let col = 0; col < 16; col++) {
                 const blue = (row + col) % 2 === 0;
-                drawRect(ctx, col * 16, 12 + row * 8, 16, 8, blue ? '#1155aa' : '#dde8ff');
+                drawRect(ctx, col * 15, 12 + row * 8, 15, 8, blue ? '#1155aa' : '#dde8ff');
             }
         }
         drawRect(ctx, 0, 44, WIDTH, 4, '#6B4F10');
@@ -272,23 +272,23 @@ export class LevelOktoberfest {
         const tableY = 112;
         drawRect(ctx, 15, tableY, WIDTH - 30, 5, '#8B6914');
         drawRect(ctx, 15, tableY + 1, WIDTH - 30, 2, '#A0791E');
-        for (const lx of [25, 100, 180, WIDTH - 30]) drawRect(ctx, lx, tableY + 5, 3, 25, '#6B4F10');
+        for (const lx of [20, 80, 150, WIDTH - 25]) drawRect(ctx, lx, tableY + 5, 3, 25, '#6B4F10');
 
         // ── back-row guests (behind table, same size as front row) ──
-        this.drawGuest(ctx, 30 + sway * 0.7,  88, '#cc5533', '#442211', false, 1.8, frame);
-        this.drawGuest(ctx, 90 + sway * 0.7,  90, '#5588bb', '#1a0a00', true,  1.8, frame);
-        this.drawGuest(ctx, 210 + sway * 0.7, 88, '#aa5588', '#331a11', true,  1.8, frame);
+        this.drawGuest(ctx, 15 + sway * 0.7,  88, '#cc5533', '#442211', false, 1.8, frame);
+        this.drawGuest(ctx, 65 + sway * 0.7,  90, '#5588bb', '#1a0a00', true,  1.8, frame);
+        this.drawGuest(ctx, 160 + sway * 0.7, 88, '#aa5588', '#331a11', true,  1.8, frame);
         if (this.phase >= 1) {
-            this.drawGuest(ctx, 155 + sway * 0.7, 89, '#55aa55', '#3a2a11', false, 1.8, frame);
-            this.drawGuest(ctx, 265 + sway * 0.7, 90, '#ddaa44', '#221100', true,  1.8, frame);
+            this.drawGuest(ctx, 115 + sway * 0.7, 89, '#55aa55', '#3a2a11', false, 1.8, frame);
+            this.drawGuest(ctx, 200 + sway * 0.7, 90, '#ddaa44', '#221100', true,  1.8, frame);
         }
 
         // ── beer steins on table ──
-        this.drawStein(ctx, 35,  tableY - 14);
-        this.drawStein(ctx, 82,  tableY - 13);
-        this.drawStein(ctx, 135, tableY - 14);
-        this.drawStein(ctx, 195, tableY - 13);
-        this.drawStein(ctx, 252, tableY - 14);
+        this.drawStein(ctx, 25,  tableY - 14);
+        this.drawStein(ctx, 65,  tableY - 13);
+        this.drawStein(ctx, 110, tableY - 14);
+        this.drawStein(ctx, 155, tableY - 13);
+        this.drawStein(ctx, 200, tableY - 14);
 
         // ── front bench ──
         const benchY = 150;
@@ -298,13 +298,13 @@ export class LevelOktoberfest {
 
         // ── front-row: Hannah & Justin (always present, centre) ──
         // Hannah — blue Dirndl
-        drawPerson(ctx, 132 + sway, benchY - 27, {
+        drawPerson(ctx, WIDTH / 2 - 18 + sway, benchY - 27, {
             hairColor: '#2a1a0e', shirtColor: '#2266bb',
             shoeColor: '#aa8855', skinColor: COLORS.skin,
             isGirl: true, scale: 1.8, frame,
         });
         // Justin — green shirt / Lederhosen
-        drawPerson(ctx, 157 + sway, benchY - 28, {
+        drawPerson(ctx, WIDTH / 2 + 7 + sway, benchY - 28, {
             hairColor: COLORS.brown, shirtColor: '#448844',
             pantsColor: '#8B6914', shoeColor: '#5a3a0a',
             isGirl: false, scale: 1.8, frame,
@@ -314,7 +314,7 @@ export class LevelOktoberfest {
         if (this.dominikCamillaArrived) {
             const t = clamp((this.timer - this.dcArriveTime) / 60, 0, 1);
             // Dominik from left — braune Haare, blaues T-Shirt
-            const domX = lerp(-20, 62, t) + sway;
+            const domX = lerp(-20, 40, t) + sway;
             drawPerson(ctx, domX, benchY - 28, {
                 hairColor: '#3a2511', shirtColor: '#3366bb',
                 pantsColor: '#8B6914', shoeColor: '#4a2a05',
@@ -323,7 +323,7 @@ export class LevelOktoberfest {
             if (t >= 1) drawText(ctx, 'Dominik', domX + 10, benchY - 32, COLORS.gold, 3);
 
             // Camilla from right — blonde Haare, Dirndl
-            const camX = lerp(WIDTH + 20, 218, t) + sway;
+            const camX = lerp(WIDTH + 20, WIDTH - 30, t) + sway;
             drawPerson(ctx, camX, benchY - 27, {
                 hairColor: '#d4a854', shirtColor: '#cc3355',
                 shoeColor: '#aa7744', skinColor: COLORS.skin,
@@ -338,7 +338,7 @@ export class LevelOktoberfest {
 
         // ── sway indicator ──
         const indY = 175;
-        const indW = 180;
+        const indW = WIDTH - 60;
         const indX = WIDTH / 2 - indW / 2;
 
         drawRect(ctx, indX - 1, indY - 1, indW + 2, 10, '#222233');

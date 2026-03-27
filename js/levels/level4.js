@@ -30,7 +30,7 @@ export class Level4 {
         this.lights = [];
         for (let i = 0; i < 6; i++) {
             this.lights.push({
-                x: 15 + i * 58,
+                x: 10 + i * 40,
                 phase: i * 0.8,
                 color: [COLORS.pink, COLORS.purple, COLORS.blue, COLORS.gold, COLORS.pink, COLORS.purple][i],
             });
