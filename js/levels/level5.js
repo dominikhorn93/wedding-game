@@ -450,5 +450,24 @@ export class Level5 {
             drawText(ctx, 'LEFT/RIGHT to steer!', WIDTH / 2, HEIGHT - 16, COLORS.white, 5);
             ctx.globalAlpha = 1;
         }
+
+        // Touch zone indicators (visible on touch devices)
+        if ('ontouchstart' in window) {
+            const touchAlpha = (input.mouse.down || input.touch.active) ? 0.25 : 0.12;
+            const leftActive = input.mouse.down && input.mouse.x < WIDTH / 3;
+            const rightActive = input.mouse.down && input.mouse.x > WIDTH * 2 / 3;
+
+            // Left zone
+            ctx.globalAlpha = leftActive ? 0.3 : touchAlpha;
+            drawRect(ctx, 0, HEIGHT - 50, WIDTH / 3, 50, '#ffffff');
+            drawText(ctx, '<', WIDTH / 6, HEIGHT - 25, '#ffffff', 16);
+
+            // Right zone
+            ctx.globalAlpha = rightActive ? 0.3 : touchAlpha;
+            drawRect(ctx, WIDTH * 2 / 3, HEIGHT - 50, WIDTH / 3, 50, '#ffffff');
+            drawText(ctx, '>', WIDTH * 5 / 6, HEIGHT - 25, '#ffffff', 16);
+
+            ctx.globalAlpha = 1;
+        }
     }
 }

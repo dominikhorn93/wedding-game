@@ -17,6 +17,17 @@ function getCtx() {
     return ctx;
 }
 
+// Mobile audio unlock: resume AudioContext on first user interaction
+function unlockAudio() {
+    getCtx();
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('touchend', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+}
+document.addEventListener('touchstart', unlockAudio, { once: false });
+document.addEventListener('touchend', unlockAudio, { once: false });
+document.addEventListener('click', unlockAudio, { once: false });
+
 // Core: play a tone with envelope
 function playTone(freq, duration = 0.1, type = 'square', volume = 0.15, delay = 0) {
     if (!enabled) return;
