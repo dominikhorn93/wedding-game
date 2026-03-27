@@ -89,8 +89,7 @@ body {
 /* ── Mobile Portrait ── */
 @media (max-width: 600px) {
     body {
-        justify-content: flex-start;
-        padding-top: 3dvh;
+        justify-content: center;
     }
 
     #game-container {
