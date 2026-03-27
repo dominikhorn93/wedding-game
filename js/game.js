@@ -235,7 +235,6 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// Start — skip to Oktoberfest for testing (flowIndex 13 = oktoberfest_intro)
-flowIndex = 13;
+// Start
 advanceFlow();
 requestAnimationFrame(gameLoop);
