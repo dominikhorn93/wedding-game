@@ -154,10 +154,10 @@ export const STORIES = {
         lines: [
             "PROST!",
             "",
-            "Was fuer eine Gaudi!",
+            "What a night!",
             "",
             "The beer tent was rocking,",
-            "the Stimmung was perfect.",
+            "the atmosphere was perfect.",
             "",
             "Adventures that span oceans",
             "make the best memories.",
